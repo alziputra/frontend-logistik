@@ -34,7 +34,7 @@ export const addInventory = async (formData) => {
     no_pks: formData.no_pks || null,
     tanggal_mulai: formData.tanggal_mulai || null,
     tanggal_selesai: formData.tanggal_selesai || null,
-    status: formData.status || "Inventaris",
+    status: formData.status || "Sewa Berjalan",
     masa_sewa_bulan: Number(formData.masa_sewa_bulan || 0),
   };
   const response = await apiClient.post('/asets', payload);
@@ -51,7 +51,7 @@ export const updateInventory = async (id, formData) => {
     no_pks: formData.no_pks || null,
     tanggal_mulai: formData.tanggal_mulai || null,
     tanggal_selesai: formData.tanggal_selesai || null,
-    status: formData.status || "Inventaris",
+    status: formData.status || "Sewa Berjalan",
     masa_sewa_bulan: Number(formData.masa_sewa_bulan || 0),
   };
   const response = await apiClient.put(`/asets/${id}`, payload);

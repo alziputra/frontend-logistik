@@ -44,7 +44,7 @@ export default function NotificationBell({
     <div className="relative">
       <button
         onClick={() => setView && setView("notifikasi")}
-        className="relative p-2 text-slate-400 hover:bg-slate-800 hover:text-emerald-400 rounded-xl transition-all border border-transparent flex items-center justify-center cursor-pointer"
+        className="relative p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-emerald-600 dark:hover:text-emerald-400 rounded-xl transition-all border border-transparent flex items-center justify-center cursor-pointer"
         title="Notifikasi Peringatan"
       >
         <Bell className={isMobile ? "w-6 h-6" : "w-5 h-5"} />

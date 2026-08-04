@@ -16,6 +16,13 @@ import { getInventory } from "../services/inventoryService";
 import { getVendors } from "../services/vendorService";
 import { getUsers } from "../services/userService";
 import { getInstansi } from "../services/instansiService";
+import { getAsetTanah } from "../services/asetTanahService";
+import { getMenuSewa } from "../services/menuSewaService";
+import { getRenovasi } from "../services/renovasiService";
+import { getPengamananKorporasi } from "../services/pengamananService";
+import { getSpkHistories } from "../services/spkService";
+import { getSoppHistories } from "../services/soppService";
+import { getActivityLogs } from "../services/activityLogService";
 
 import ToastNotif from "../components/Modal/ToastNotif";
 
@@ -55,7 +62,7 @@ export default function DashboardPage() {
     });
   }, [computers]);
 
-  // Secondary / Mocked Data States
+  // Secondary Data States
   const [buildingLands, setBuildingLands] = useState([]);
   const [buildingSewas, setBuildingSewas] = useState([]);
   const [buildingRenovations, setBuildingRenovations] = useState([]);
@@ -82,7 +89,10 @@ export default function DashboardPage() {
   const loadAllData = async () => {
     setLoadingData(true);
     try {
-      const [compRes, printRes, trxRes, invRes, venRes, userRes, instRes] = await Promise.allSettled([
+      const [
+        compRes, printRes, trxRes, invRes, venRes, userRes, instRes,
+        landRes, sewaRes, renoRes, secRes, spkRes, soppRes, logRes
+      ] = await Promise.allSettled([
         getKomputer(),
         getPrinter(),
         getTransaksi(),
@@ -90,6 +100,13 @@ export default function DashboardPage() {
         getVendors(),
         getUsers(),
         getInstansi(),
+        getAsetTanah(),
+        getMenuSewa(),
+        getRenovasi(),
+        getPengamananKorporasi(),
+        getSpkHistories(),
+        getSoppHistories(),
+        getActivityLogs(),
       ]);
 
       if (compRes.status === "fulfilled") setComputers(ensureArray(compRes.value));
@@ -99,6 +116,13 @@ export default function DashboardPage() {
       if (venRes.status === "fulfilled") setVendors(ensureArray(venRes.value));
       if (userRes.status === "fulfilled") setUsersList(ensureArray(userRes.value));
       if (instRes.status === "fulfilled") setOutlets(ensureArray(instRes.value));
+      if (landRes.status === "fulfilled") setBuildingLands(ensureArray(landRes.value));
+      if (sewaRes.status === "fulfilled") setBuildingSewas(ensureArray(sewaRes.value));
+      if (renoRes.status === "fulfilled") setBuildingRenovations(ensureArray(renoRes.value));
+      if (secRes.status === "fulfilled") setSecurityFacilities(ensureArray(secRes.value));
+      if (spkRes.status === "fulfilled") setSpkHistory(ensureArray(spkRes.value));
+      if (soppRes.status === "fulfilled") setSoppHistory(ensureArray(soppRes.value));
+      if (logRes.status === "fulfilled") setActivityLogs(ensureArray(logRes.value));
     } catch (err) {
       console.error("Error loading dashboard data:", err);
     } finally {
@@ -143,7 +167,7 @@ export default function DashboardPage() {
   });
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans relative selection:bg-emerald-500 selection:text-white">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col font-sans relative selection:bg-emerald-500 selection:text-white transition-colors duration-300">
       {/* Sidebar Navigation */}
       <Navbar
         view={activeTab}
@@ -184,7 +208,7 @@ export default function DashboardPage() {
           setTabs={setTabs}
         />
 
-        <main className="flex-1 p-4 md:p-6 bg-slate-900/60 overflow-y-auto">
+        <main className="flex-1 p-4 md:p-6 bg-slate-100/70 dark:bg-slate-900/60 overflow-y-auto">
           {loadingData ? (
             <div className="flex flex-col items-center justify-center py-20 gap-3">
               <div className="w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>

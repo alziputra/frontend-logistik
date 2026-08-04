@@ -15,13 +15,13 @@ export default function InventoryChart({ inventory = [] }) {
   })) : 1;
 
   return (
-    <div className="bg-slate-900 rounded-xl shadow-sm border border-slate-800 flex flex-col">
-      <div className="px-5 py-4 border-b border-slate-800 bg-slate-900/50 flex items-center gap-3 shrink-0">
-        <div className="bg-purple-950 p-2 rounded-lg">
-          <BarChart3 className="w-4 h-4 text-purple-400" />
+    <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 flex flex-col">
+      <div className="px-5 py-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 flex items-center gap-3 shrink-0">
+        <div className="bg-purple-100 dark:bg-purple-950 p-2 rounded-lg">
+          <BarChart3 className="w-4 h-4 text-purple-600 dark:text-purple-400" />
         </div>
         <div>
-          <h3 className="font-bold text-sm text-slate-100">Visualisasi Stok Master Barang (Top Item)</h3>
+          <h3 className="font-bold text-sm text-slate-900 dark:text-slate-100">Visualisasi Stok Master Barang (Top Item)</h3>
         </div>
       </div>
       
@@ -44,13 +44,13 @@ export default function InventoryChart({ inventory = [] }) {
                       style={{ height: `${heightPct}%`, minHeight: '4px' }}
                       title={`${item.nama} \nStok: ${stokValue} ${item.satuan || ''}`}
                     >
-                      <span className="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] font-bold text-slate-200 bg-slate-800 px-1.5 py-0.5 rounded shadow-sm border border-slate-700 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <span className="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] font-bold text-slate-800 dark:text-slate-200 bg-white dark:bg-slate-800 px-1.5 py-0.5 rounded shadow-md border border-slate-200 dark:border-slate-700 opacity-0 group-hover:opacity-100 transition-opacity">
                         {stokValue}
                       </span>
                     </div>
                   </div>
                   <div className="h-8 mt-2 w-full flex justify-center items-start">
-                    <span className="text-[10px] text-slate-400 text-center line-clamp-2 leading-tight px-1 font-medium" title={item.nama}>
+                    <span className="text-[10px] text-slate-600 dark:text-slate-400 text-center line-clamp-2 leading-tight px-1 font-medium" title={item.nama}>
                       {item.nama}
                     </span>
                   </div>

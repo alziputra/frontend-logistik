@@ -1,15 +1,15 @@
-import { useState } from "react";
+import { useNotification } from "../context/NotificationContext";
 
 export function useNotif() {
-  const [notif, setNotif] = useState({ show: false, message: "", type: "success" });
+  const { showSuccess, showError, showConfirmDelete } = useNotification();
 
   const showNotif = (message, type = "success") => {
-    setNotif({ show: true, message, type });
-    setTimeout(
-      () => setNotif({ show: false, message: "", type: "success" }),
-      3500
-    );
+    if (type === "error") {
+      showError("Gagal Memproses Data", message);
+    } else {
+      showSuccess("Berhasil Memproses Data", message);
+    }
   };
 
-  return { notif, showNotif };
+  return { notif: { show: false }, showNotif, showSuccess, showError, showConfirmDelete };
 }

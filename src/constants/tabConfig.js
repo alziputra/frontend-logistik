@@ -18,6 +18,7 @@ export const VIEW_TITLES = {
   spk_renovasi: "SPK - Renovasi",
   spk_elektronik: "SPK - Elektronik",
   spk_kendaraan: "SPK - Kendaraan",
+  sopp_generator: "Generator SOPP",
   sopp_pengadaan: "SOPP - Pengadaan",
   sopp_sewa: "SOPP - Sewa",
 };

@@ -1,15 +1,22 @@
 import React, { useState } from "react";
-import {
-  Monitor, Search, Plus, FileSpreadsheet, Upload, Loader2,
-} from "lucide-react";
+import { Monitor, Search, Plus } from "lucide-react";
 
 import KomputerTable from "./KomputerTable";
 import KomputerModal from "./KomputerModal";
-import QrLabelModal from "./QrLabelModal";
+import QrLabelModal from "../DataPrinter/QrLabelModal";
 import ConfirmDeleteModal from "../../Modal/ConfirmDeleteModal";
 import ToastNotif from "../../Modal/ToastNotif";
+import { addKomputer, updateKomputer, deleteKomputer } from "../../../services/komputerService";
 
-export default function DataKomputer({ userRole = "admin", computers = [], outlets = [], inventory = [], filterStatus: propFilterStatus = "Semua", setFilterStatus }) {
+export default function DataKomputer({
+  userRole = "admin",
+  computers = [],
+  outlets = [],
+  inventory = [],
+  filterStatus: propFilterStatus = "Semua",
+  setFilterStatus,
+  loadAllData,
+}) {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatusState, setFilterStatusState] = useState(propFilterStatus);
   const [currentPage, setCurrentPage] = useState(1);
@@ -17,6 +24,7 @@ export default function DataKomputer({ userRole = "admin", computers = [], outle
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({});
+  const [isSaving, setIsSaving] = useState(false);
   const [qrModalData, setQrModalData] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState({ show: false, id: null, name: "" });
   const [notif, setNotif] = useState({ show: false, message: "", type: "success" });
@@ -36,15 +44,52 @@ export default function DataKomputer({ userRole = "admin", computers = [], outle
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedData = filteredData.slice(startIndex, startIndex + itemsPerPage);
 
+  const handleSave = async (e) => {
+    e.preventDefault();
+    setIsSaving(true);
+    try {
+      if (editingId) {
+        await updateKomputer(editingId, formData);
+        setNotif({ show: true, message: "Data komputer berhasil diupdate!", type: "success" });
+      } else {
+        await addKomputer(formData);
+        setNotif({ show: true, message: "Komputer baru berhasil ditambahkan!", type: "success" });
+      }
+      setIsModalOpen(false);
+      if (loadAllData) loadAllData();
+    } catch (err) {
+      console.error("Gagal menyimpan data komputer:", err);
+      setNotif({ show: true, message: "Gagal menyimpan data komputer.", type: "error" });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteConfirm.id) return;
+    setIsSaving(true);
+    try {
+      await deleteKomputer(deleteConfirm.id);
+      setNotif({ show: true, message: "Data komputer berhasil dihapus!", type: "success" });
+      setDeleteConfirm({ show: false, id: null, name: "" });
+      if (loadAllData) loadAllData();
+    } catch (err) {
+      console.error("Gagal menghapus komputer:", err);
+      setNotif({ show: true, message: "Gagal menghapus data komputer.", type: "error" });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
     <div className="max-w-7xl mx-auto p-6 animate-in fade-in duration-300 relative print:hidden">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
         <div>
           <h2 className="text-2xl font-bold text-slate-100 flex items-center gap-2.5">
-            <Monitor className="w-6 h-6 text-emerald-400" /> Manajemen Data Komputer
+            <Monitor className="w-6 h-6 text-emerald-400" /> Manajemen Data Komputer (PC / Laptop)
           </h2>
           <p className="text-sm text-slate-400 mt-1">
-            Kelola spesifikasi, jaringan, dan masa sewa perangkat komputer outlet.
+            Kelola data perangkat komputer, IP address, spesifikasi teknis, dan masa sewa.
           </p>
         </div>
 
@@ -54,7 +99,7 @@ export default function DataKomputer({ userRole = "admin", computers = [], outle
               onClick={() => { setEditingId(null); setFormData({}); setIsModalOpen(true); }}
               className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2.5 rounded-xl font-semibold shadow-sm transition-colors text-sm cursor-pointer"
             >
-              <Plus className="w-4 h-4" /> Tambah PC
+              <Plus className="w-4 h-4" /> Tambah Komputer
             </button>
           )}
         </div>
@@ -66,7 +111,7 @@ export default function DataKomputer({ userRole = "admin", computers = [], outle
             <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-3.5" />
             <input
               type="text"
-              placeholder="Cari IP, model, S/N, atau outlet..."
+              placeholder="Cari model, S/N, IP, atau outlet..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl outline-none focus:border-emerald-500 text-sm text-slate-100 placeholder:text-slate-500"
@@ -99,8 +144,11 @@ export default function DataKomputer({ userRole = "admin", computers = [], outle
         editingId={editingId}
         formData={formData}
         setFormData={setFormData}
+        isSaving={isSaving}
+        outletsList={outlets}
+        inventoryList={inventory}
         onClose={() => setIsModalOpen(false)}
-        onSave={(e) => { e.preventDefault(); setIsModalOpen(false); }}
+        onSave={handleSave}
       />
 
       <QrLabelModal data={qrModalData} onClose={() => setQrModalData(null)} />
@@ -108,7 +156,7 @@ export default function DataKomputer({ userRole = "admin", computers = [], outle
       <ConfirmDeleteModal
         show={deleteConfirm.show}
         name={deleteConfirm.name}
-        onConfirm={() => setDeleteConfirm({ show: false, id: null, name: "" })}
+        onConfirm={handleDeleteConfirm}
         onCancel={() => setDeleteConfirm({ show: false, id: null, name: "" })}
       />
 

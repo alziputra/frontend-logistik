@@ -35,26 +35,26 @@ const DashboardView = ({
   return (
     <div className="max-w-7xl mx-auto p-4 sm:p-6 animate-in fade-in duration-300">
       
-      <h1 className="text-2xl font-bold text-slate-100 mb-6">Dashboard Informasi</h1>
+      <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-6">Dashboard Informasi</h1>
 
       {/* Tabs */}
-      <div className="border-b border-slate-800 mb-6">
+      <div className="border-b border-slate-200 dark:border-slate-800 mb-6">
         <div className="flex gap-6 -mb-px">
           <button 
             onClick={() => setActiveSubTab("inventaris")} 
-            className={`pb-3 text-sm font-medium border-b-2 transition-all ${activeSubTab === "inventaris" ? "border-emerald-500 text-emerald-400 font-semibold" : "border-transparent text-slate-400 hover:text-slate-200"}`}
+            className={`pb-3 text-sm font-medium border-b-2 transition-all cursor-pointer ${activeSubTab === "inventaris" ? "border-emerald-500 text-emerald-600 dark:text-emerald-400 font-bold" : "border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"}`}
           >
             Dashboard Inventaris
           </button>
           <button 
             onClick={() => setActiveSubTab("bangunan")} 
-            className={`pb-3 text-sm font-medium border-b-2 transition-all ${activeSubTab === "bangunan" ? "border-emerald-500 text-emerald-400 font-semibold" : "border-transparent text-slate-400 hover:text-slate-200"}`}
+            className={`pb-3 text-sm font-medium border-b-2 transition-all cursor-pointer ${activeSubTab === "bangunan" ? "border-emerald-500 text-emerald-600 dark:text-emerald-400 font-bold" : "border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"}`}
           >
             Dashboard Bangunan
           </button>
           <button 
             onClick={() => setActiveSubTab("pengamanan")} 
-            className={`pb-3 text-sm font-medium border-b-2 transition-all ${activeSubTab === "pengamanan" ? "border-emerald-500 text-emerald-400 font-semibold" : "border-transparent text-slate-400 hover:text-slate-200"}`}
+            className={`pb-3 text-sm font-medium border-b-2 transition-all cursor-pointer ${activeSubTab === "pengamanan" ? "border-emerald-500 text-emerald-600 dark:text-emerald-400 font-bold" : "border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"}`}
           >
             Dashboard Pengamanan & Korporasi
           </button>

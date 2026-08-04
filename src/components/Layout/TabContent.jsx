@@ -175,6 +175,7 @@ export default function TabContent({
             inventory={inventory} 
             filterStatus={printerFilter} 
             setFilterStatus={setPrinterFilter} 
+            loadAllData={loadAllData}
           />
         </Panel>
       )}
@@ -188,6 +189,7 @@ export default function TabContent({
             inventory={inventory} 
             filterStatus={computerFilter} 
             setFilterStatus={setComputerFilter} 
+            loadAllData={loadAllData}
           />
         </Panel>
       )}

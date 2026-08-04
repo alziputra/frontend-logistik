@@ -6,8 +6,17 @@ import PrinterModal from "./PrinterModal";
 import QrLabelModal from "./QrLabelModal";
 import ConfirmDeleteModal from "../../Modal/ConfirmDeleteModal";
 import ToastNotif from "../../Modal/ToastNotif";
+import { addPrinter, updatePrinter, deletePrinter } from "../../../services/printerService";
 
-export default function DataPrinter({ userRole = "admin", printers = [], outlets = [], inventory = [], filterStatus: propFilterStatus = "Semua", setFilterStatus }) {
+export default function DataPrinter({
+  userRole = "admin",
+  printers = [],
+  outlets = [],
+  inventory = [],
+  filterStatus: propFilterStatus = "Semua",
+  setFilterStatus,
+  loadAllData,
+}) {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatusState, setFilterStatusState] = useState(propFilterStatus);
   const [currentPage, setCurrentPage] = useState(1);
@@ -15,6 +24,7 @@ export default function DataPrinter({ userRole = "admin", printers = [], outlets
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({});
+  const [isSaving, setIsSaving] = useState(false);
   const [qrModalData, setQrModalData] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState({ show: false, id: null, name: "" });
   const [notif, setNotif] = useState({ show: false, message: "", type: "success" });
@@ -32,6 +42,43 @@ export default function DataPrinter({ userRole = "admin", printers = [], outlets
   const totalPages = Math.ceil(filteredData.length / itemsPerPage) || 1;
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedData = filteredData.slice(startIndex, startIndex + itemsPerPage);
+
+  const handleSave = async (e) => {
+    e.preventDefault();
+    setIsSaving(true);
+    try {
+      if (editingId) {
+        await updatePrinter(editingId, formData);
+        setNotif({ show: true, message: "Printer berhasil diupdate!", type: "success" });
+      } else {
+        await addPrinter(formData);
+        setNotif({ show: true, message: "Printer baru berhasil ditambahkan!", type: "success" });
+      }
+      setIsModalOpen(false);
+      if (loadAllData) loadAllData();
+    } catch (err) {
+      console.error("Gagal menyimpan data printer:", err);
+      setNotif({ show: true, message: "Gagal menyimpan data printer.", type: "error" });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteConfirm.id) return;
+    setIsSaving(true);
+    try {
+      await deletePrinter(deleteConfirm.id);
+      setNotif({ show: true, message: "Data printer berhasil dihapus!", type: "success" });
+      setDeleteConfirm({ show: false, id: null, name: "" });
+      if (loadAllData) loadAllData();
+    } catch (err) {
+      console.error("Gagal menghapus printer:", err);
+      setNotif({ show: true, message: "Gagal menghapus data printer.", type: "error" });
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return (
     <div className="max-w-7xl mx-auto p-6 animate-in fade-in duration-300 relative print:hidden">
@@ -96,8 +143,11 @@ export default function DataPrinter({ userRole = "admin", printers = [], outlets
         editingId={editingId}
         formData={formData}
         setFormData={setFormData}
+        isSaving={isSaving}
+        outletsList={outlets}
+        inventoryList={inventory}
         onClose={() => setIsModalOpen(false)}
-        onSave={(e) => { e.preventDefault(); setIsModalOpen(false); }}
+        onSave={handleSave}
       />
 
       <QrLabelModal data={qrModalData} onClose={() => setQrModalData(null)} />
@@ -105,7 +155,7 @@ export default function DataPrinter({ userRole = "admin", printers = [], outlets
       <ConfirmDeleteModal
         show={deleteConfirm.show}
         name={deleteConfirm.name}
-        onConfirm={() => setDeleteConfirm({ show: false, id: null, name: "" })}
+        onConfirm={handleDeleteConfirm}
         onCancel={() => setDeleteConfirm({ show: false, id: null, name: "" })}
       />
 
