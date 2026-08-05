@@ -7,6 +7,7 @@ const apiClient = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  timeout: 10000,
 });
 
 // Request Interceptor to add JWT Auth Token
@@ -23,14 +24,24 @@ apiClient.interceptors.request.use(
   }
 );
 
-// Response Interceptor to handle errors globally
+// Response Interceptor to handle errors & server status globally
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // Notify application that server is online
+    window.dispatchEvent(new CustomEvent('server-status-changed', { detail: { online: true } }));
+    return response;
+  },
   (error) => {
+    // Detect Network Errors / Connection Refused / Server Down
+    if (!error.response || error.code === 'ERR_NETWORK' || error.code === 'ECONNABORTED') {
+      window.dispatchEvent(new CustomEvent('server-status-changed', { detail: { online: false } }));
+    } else {
+      window.dispatchEvent(new CustomEvent('server-status-changed', { detail: { online: true } }));
+    }
+
     if (error.response && error.response.status === 401) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      // Redirect to login if unauthenticated and not already on login page
       if (window.location.pathname !== '/login') {
         window.location.href = '/login';
       }

@@ -5,8 +5,12 @@ const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
-    const savedUser = localStorage.getItem('user');
-    return savedUser ? JSON.parse(savedUser) : null;
+    try {
+      const savedUser = localStorage.getItem('user');
+      return savedUser ? JSON.parse(savedUser) : null;
+    } catch {
+      return null;
+    }
   });
   const [token, setToken] = useState(() => localStorage.getItem('token') || null);
   const [loading, setLoading] = useState(true);
@@ -16,9 +20,12 @@ export const AuthProvider = ({ children }) => {
       if (token) {
         try {
           const res = await apiClient.get('/auth/me');
-          const userData = res.data.data || res.data.user || res.data;
-          setUser(userData);
-          localStorage.setItem('user', JSON.stringify(userData));
+          const payload = res.data?.data || res.data;
+          const userData = payload?.user || payload;
+          if (userData && userData.email) {
+            setUser(userData);
+            localStorage.setItem('user', JSON.stringify(userData));
+          }
         } catch (error) {
           console.error('Failed to verify session token:', error);
           logout();
@@ -35,8 +42,10 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       const response = await apiClient.post('/auth/login', { email, password });
-      const { token: jwtToken, user: userData } = response.data.data || response.data;
-      
+      const payload = response.data?.data || response.data;
+      const jwtToken = payload?.token;
+      const userData = payload?.user;
+
       if (jwtToken) {
         localStorage.setItem('token', jwtToken);
         setToken(jwtToken);
@@ -58,6 +67,7 @@ export const AuthProvider = ({ children }) => {
       const response = await apiClient.post('/auth/register', { name, email, password });
       return { success: true, data: response.data };
     } catch (error) {
+      console.error('Registration failed:', error);
       const message = error.response?.data?.message || 'Registrasi gagal';
       return { success: false, message };
     }
@@ -70,18 +80,10 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
+  const isAuthenticated = Boolean(user && token);
+
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        token,
-        isAuthenticated: !!token && !!user,
-        loading,
-        login,
-        register,
-        logout,
-      }}
-    >
+    <AuthContext.Provider value={{ user, token, isAuthenticated, loading, login, register, logout, setUser }}>
       {children}
     </AuthContext.Provider>
   );

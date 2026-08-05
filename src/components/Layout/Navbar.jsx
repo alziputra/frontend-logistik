@@ -246,16 +246,6 @@ export default function Navbar({
             </>
           )}
         </nav>
-
-        {/* FOOTER USER / LOGOUT */}
-        <div className="p-4 border-t border-slate-200 dark:border-slate-800 shrink-0">
-          <button
-            onClick={logout}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-rose-50 dark:bg-rose-950/60 hover:bg-rose-100 dark:hover:bg-rose-900/80 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800/50 text-sm font-semibold transition-all cursor-pointer shadow-sm"
-          >
-            <LogOut className="w-4 h-4" /> Keluar (Logout)
-          </button>
-        </div>
       </aside>
     </>
   );

@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Package, Lock, Mail, LogIn, AlertCircle, Sun, Moon } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import ServerStatusPill from '../components/Notification/ServerStatusPill';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -10,9 +11,15 @@ export default function LoginPage() {
   const [errorMsg, setErrorMsg] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const { login } = useAuth();
+  const { login, isAuthenticated } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -23,7 +30,7 @@ export default function LoginPage() {
     setLoading(false);
 
     if (result.success) {
-      navigate('/dashboard');
+      navigate('/dashboard', { replace: true });
     } else {
       setErrorMsg(result.message || 'Login gagal, periksa email dan password Anda');
     }
@@ -35,22 +42,30 @@ export default function LoginPage() {
       <div className="absolute -top-40 -left-40 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
       <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
-      {/* Top Right Theme Toggle */}
-      <div className="absolute top-6 right-6 z-20">
+      {/* Top Right Controls (Server Status Pill + Theme Toggle) */}
+      <div className="absolute top-6 right-6 z-20 flex items-center gap-3">
+        {/* Server Status Pill (matches user request) */}
+        <ServerStatusPill />
+
+        {/* Theme Toggle Button */}
         <button
           onClick={toggleTheme}
           title={theme === "dark" ? "Ganti ke Mode Terang" : "Ganti ke Mode Gelap"}
-          className="flex items-center gap-2 px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm text-xs font-semibold cursor-pointer transition-all hover:bg-slate-100 dark:hover:bg-slate-800"
+          className={`px-3.5 py-1.5 rounded-full border shadow-sm transition-all cursor-pointer flex items-center gap-2 text-xs font-semibold ${
+            theme === "dark"
+              ? "bg-slate-900 hover:bg-slate-800 text-slate-200 border-slate-800"
+              : "bg-white hover:bg-slate-50 text-slate-700 border-slate-200"
+          }`}
         >
           {theme === "dark" ? (
             <>
               <Sun className="w-4 h-4 text-amber-400" />
-              <span className="text-slate-200">Terang</span>
+              <span>Terang</span>
             </>
           ) : (
             <>
               <Moon className="w-4 h-4 text-indigo-600" />
-              <span className="text-slate-700 font-bold">Gelap</span>
+              <span>Gelap</span>
             </>
           )}
         </button>
