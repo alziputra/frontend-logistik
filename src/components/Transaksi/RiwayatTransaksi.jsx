@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { History, Search, FileText, ArrowLeftRight, Eye, Edit, Trash2 } from "lucide-react";
+import { History, Search, FileText, ArrowLeftRight, Eye, Edit, Trash2, Package } from "lucide-react";
 import ExcelActionButtons from "../Common/ExcelActionButtons";
 import ConfirmDeleteModal from "../Modal/ConfirmDeleteModal";
 import { deleteTransaksi } from "../../services/transaksiService";
@@ -20,11 +20,13 @@ export default function RiwayatTransaksi({
 
   const filtered = transactions.filter((t) => {
     const q = search.toLowerCase();
+    const itemNames = (t.items || []).map((i) => (i.namaBarang || i.nama || "").toLowerCase()).join(" ");
     return (
       t.nomorSurat?.toLowerCase().includes(q) ||
       t.penerimaNama?.toLowerCase().includes(q) ||
       t.pengirimNama?.toLowerCase().includes(q) ||
-      t.tujuan?.toLowerCase().includes(q)
+      t.tujuan?.toLowerCase().includes(q) ||
+      itemNames.includes(q)
     );
   });
 
@@ -115,6 +117,13 @@ export default function RiwayatTransaksi({
     }
   };
 
+  const exportDataFormatted = filtered.map((t) => ({
+    ...t,
+    rincianBarangStr: (t.items || [])
+      .map((it) => `${it.namaBarang || it.nama || "Barang"} (${it.jumlah || it.kuantitas || 1} ${it.satuan || "Unit"})`)
+      .join(", "),
+  }));
+
   return (
     <div className="max-w-7xl mx-auto p-6 animate-in fade-in duration-300">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
@@ -135,12 +144,12 @@ export default function RiwayatTransaksi({
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Cari nomor / nama..."
+              placeholder="Cari nomor / nama barang..."
               className="w-full pl-9 pr-4 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-slate-100 outline-none focus:border-emerald-500"
             />
           </div>
           <ExcelActionButtons
-            data={filtered}
+            data={exportDataFormatted}
             fileName="Riwayat_Transaksi_Logistik"
             headersMap={{
               nomorSurat: "Nomor Surat",
@@ -148,6 +157,7 @@ export default function RiwayatTransaksi({
               jenisTransaksi: "Jenis Transaksi",
               pengirimNama: "Pengirim",
               penerimaNama: "Penerima",
+              rincianBarangStr: "Rincian Barang",
               lokasi: "Lokasi",
             }}
             showImport={false}
@@ -160,13 +170,13 @@ export default function RiwayatTransaksi({
           <table className="w-full text-left text-xs whitespace-nowrap">
             <thead className="bg-slate-950 text-slate-400 border-b border-slate-800 font-bold uppercase tracking-wider">
               <tr>
-                <th className="px-6 py-4 w-12 text-center">No</th>
-                <th className="px-6 py-4">Nomor Surat</th>
-                <th className="px-6 py-4">Tanggal</th>
-                <th className="px-6 py-4">Jenis Transaksi</th>
-                <th className="px-6 py-4">Pengirim ➔ Penerima</th>
-                <th className="px-6 py-4 text-center">Jumlah Barang</th>
-                <th className="px-6 py-4 text-center w-28">Aksi</th>
+                <th className="px-5 py-4 w-12 text-center">No</th>
+                <th className="px-5 py-4">Nomor Surat</th>
+                <th className="px-5 py-4">Tanggal</th>
+                <th className="px-5 py-4">Jenis Transaksi</th>
+                <th className="px-5 py-4">Pengirim ➔ Penerima</th>
+                <th className="px-5 py-4">Rincian Barang</th>
+                <th className="px-5 py-4 text-center w-28">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800">
@@ -179,21 +189,38 @@ export default function RiwayatTransaksi({
               ) : (
                 filtered.map((trx, idx) => (
                   <tr key={trx.id || idx} className="hover:bg-slate-800/50 transition-colors">
-                    <td className="px-6 py-4 text-center text-slate-400">{idx + 1}</td>
-                    <td className="px-6 py-4 font-bold text-slate-100 font-mono">{trx.nomorSurat}</td>
-                    <td className="px-6 py-4 text-slate-300">{trx.tanggal}</td>
-                    <td className="px-6 py-4">
+                    <td className="px-5 py-4 text-center text-slate-400 font-mono">{idx + 1}</td>
+                    <td className="px-5 py-4 font-bold text-slate-100 font-mono">{trx.nomorSurat}</td>
+                    <td className="px-5 py-4 text-slate-300">{trx.tanggal}</td>
+                    <td className="px-5 py-4">
                       <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold border ${trx.jenisTransaksi === "Barang Masuk" ? "bg-emerald-950/80 text-emerald-400 border-emerald-800/40" : "bg-amber-950/80 text-amber-400 border-amber-800/40"}`}>
                         {trx.jenisTransaksi}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-slate-300">
+                    <td className="px-5 py-4 text-slate-300">
                       {trx.pengirimNama || trx.pihak1Nama || "-"} ➔ {trx.penerimaNama || trx.pihak2Nama || trx.tujuan || "-"}
                     </td>
-                    <td className="px-6 py-4 text-center font-bold text-slate-200">
-                      {trx.items?.length || 0} Item
+                    
+                    {/* Rincian Nama Barang & Kuantitas/Satuan */}
+                    <td className="px-5 py-4">
+                      {trx.items && trx.items.length > 0 ? (
+                        <div className="space-y-1">
+                          {trx.items.map((it, i) => (
+                            <div key={i} className="flex items-center gap-1.5 text-xs">
+                              <Package className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                              <span className="font-semibold text-slate-100">{it.namaBarang || it.nama || "Barang"}</span>
+                              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-800 text-emerald-400 border border-slate-700">
+                                {it.jumlah || it.kuantitas || 1} {it.satuan || "Unit"}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <span className="text-slate-500 italic text-xs">- Tidak ada rincian -</span>
+                      )}
                     </td>
-                    <td className="px-6 py-4 text-center">
+
+                    <td className="px-5 py-4 text-center">
                       <div className="flex items-center justify-center gap-1.5">
                         {/* Lihat / Preview Surat (Icon Only) */}
                         <button
@@ -220,7 +247,7 @@ export default function RiwayatTransaksi({
                           type="button"
                           onClick={() => setDeleteTarget(trx)}
                           className="p-2 bg-rose-600/20 hover:bg-rose-600/40 text-rose-400 border border-rose-500/30 rounded-xl transition-all shadow-sm hover:shadow-md cursor-pointer active:scale-95 flex items-center justify-center shrink-0"
-                          title="Hapus Surat"
+                          title="Hapus Transaksi"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -236,10 +263,11 @@ export default function RiwayatTransaksi({
 
       {/* Global Confirmation Delete Modal */}
       <ConfirmDeleteModal
-        show={!!deleteTarget}
-        name={deleteTarget ? `surat ${deleteTarget.nomorSurat}` : ""}
+        isOpen={Boolean(deleteTarget)}
+        onClose={() => setDeleteTarget(null)}
         onConfirm={handleConfirmDelete}
-        onCancel={() => setDeleteTarget(null)}
+        title="Hapus Berita Acara Transaksi?"
+        message={`Apakah Anda yakin ingin menghapus surat transaksi nomor "${deleteTarget?.nomorSurat || ""}"? Data yang dihapus tidak dapat dikembalikan.`}
       />
     </div>
   );

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import {
   FileText, ArrowRight, Plus, Trash2, AlertCircle,
   PackageCheck, PackageMinus, Hash, MapPin, Calendar, ClipboardList, Building2,
-  ChevronDown, Check
+  ChevronDown, Check, Package
 } from "lucide-react";
 
 const NOMOR_PATTERN = /^\d{3}\/\d{5}\.\d{2}\/\d{2}\/\d{4}$/;
@@ -28,7 +28,12 @@ const inputCls =
   "w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-slate-100 outline-none transition-all focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 placeholder:text-slate-400 dark:placeholder:text-slate-500 font-medium shadow-sm";
 
 /* Custom Searchable Combobox Component untuk Tujuan Instansi / Outlet */
-const OutletCombobox = ({ outlets = [], value = "", onChange }) => {
+const OutletCombobox = ({
+  outlets = [],
+  value = "",
+  onChange = () => {},
+  placeholder = "Pilih dari daftar master instansi / outlet atau ketik manual..."
+}) => {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState(value);
   const containerRef = useRef(null);
@@ -78,22 +83,22 @@ const OutletCombobox = ({ outlets = [], value = "", onChange }) => {
           value={query}
           onFocus={() => setIsOpen(true)}
           onChange={handleTextChange}
-          placeholder="Pilih dari daftar master instansi / outlet atau ketik manual..."
-          className={`${inputCls} pr-9`}
+          placeholder={placeholder}
+          className={`${inputCls} pr-8`}
         />
         <div
           onClick={() => setIsOpen((prev) => !prev)}
           className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer p-1"
         >
-          <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isOpen ? "rotate-180 text-emerald-500" : ""}`} />
+          <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isOpen ? "rotate-180 text-emerald-500" : ""}`} />
         </div>
       </div>
 
-      {/* Custom Floating Dropdown Menu (Pas 100% di bawah input) */}
+      {/* Custom Floating Dropdown Menu */}
       {isOpen && (
-        <div className="absolute left-0 right-0 top-full mt-1.5 z-50 max-h-64 overflow-y-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl py-1.5 animate-in fade-in zoom-in-95 duration-150">
+        <div className="absolute left-0 right-0 top-full mt-1.5 z-[9999] min-w-[220px] max-h-64 overflow-y-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl py-1.5 animate-in fade-in zoom-in-95 duration-150">
           {filteredOutlets.length === 0 ? (
-            <div className="px-4 py-3 text-xs text-slate-400 italic text-center">
+            <div className="px-3.5 py-2.5 text-xs text-slate-400 italic text-center">
               Tidak ada instansi/outlet yang cocok. Anda dapat mengetikkan nama instansi manual.
             </div>
           ) : (
@@ -117,6 +122,118 @@ const OutletCombobox = ({ outlets = [], value = "", onChange }) => {
                           {o.status && <span className="font-semibold text-slate-400">{o.status} • </span>}
                           {o.kode && <span>Kode: {o.kode} </span>}
                           {o.cabangInduk && <span>| Induk: {o.cabangInduk}</span>}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  {isSelected && <Check className="w-4 h-4 text-emerald-500 shrink-0 ml-2" />}
+                </div>
+              );
+            })
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
+/* Custom Searchable Combobox Component untuk Nama Barang */
+const ItemCombobox = ({
+  inventory = [],
+  value = "",
+  onChange = () => {},
+  placeholder = "Nama barang..."
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [query, setQuery] = useState(value);
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    setQuery(value || "");
+  }, [value]);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (containerRef.current && !containerRef.current.contains(e.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const filteredItems = inventory.filter((inv) => {
+    const q = query.toLowerCase();
+    const nama = (inv.nama || inv.namaBarang || inv.name || "").toLowerCase();
+    const merk = (inv.merk || inv.brand || "").toLowerCase();
+    const sn = (inv.sn || inv.serialNumber || "").toLowerCase();
+    const jenis = (inv.jenis || inv.kategori || "").toLowerCase();
+    return nama.includes(q) || merk.includes(q) || sn.includes(q) || jenis.includes(q);
+  });
+
+  const handleSelect = (inv) => {
+    const name = inv.nama || inv.namaBarang || inv.name;
+    setQuery(name);
+    onChange(name);
+    setIsOpen(false);
+  };
+
+  const handleTextChange = (e) => {
+    const val = e.target.value;
+    setQuery(val);
+    onChange(val);
+    setIsOpen(true);
+  };
+
+  return (
+    <div className="relative w-full" ref={containerRef}>
+      <div className="relative flex items-center">
+        <input
+          type="text"
+          value={query}
+          onFocus={() => setIsOpen(true)}
+          onChange={handleTextChange}
+          placeholder={placeholder}
+          className={`${inputCls} pr-8`}
+        />
+        <div
+          onClick={() => setIsOpen((prev) => !prev)}
+          className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer p-1"
+        >
+          <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isOpen ? "rotate-180 text-emerald-500" : ""}`} />
+        </div>
+      </div>
+
+      {/* Custom Floating Dropdown Menu */}
+      {isOpen && (
+        <div className="absolute left-0 right-0 top-full mt-1.5 z-[9999] min-w-[220px] max-h-64 overflow-y-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl py-1.5 animate-in fade-in zoom-in-95 duration-150">
+          {filteredItems.length === 0 ? (
+            <div className="px-3.5 py-2.5 text-xs text-slate-400 italic text-center">
+              Tidak ada barang di master. Anda dapat mengetikkan nama barang manual.
+            </div>
+          ) : (
+            filteredItems.map((inv, idx) => {
+              const name = inv.nama || inv.namaBarang || inv.name;
+              const isSelected = query === name;
+              const metaText = [inv.jenis || inv.kategori, inv.merk || inv.brand, inv.sn ? `S/N: ${inv.sn}` : null]
+                .filter(Boolean)
+                .join(" • ");
+
+              return (
+                <div
+                  key={inv.id || idx}
+                  onClick={() => handleSelect(inv)}
+                  className={`px-3.5 py-2.5 hover:bg-emerald-500/10 dark:hover:bg-emerald-950/40 cursor-pointer flex items-center justify-between transition-colors border-b border-slate-100 dark:border-slate-800/60 last:border-0 ${
+                    isSelected ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold" : "text-slate-800 dark:text-slate-200"
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <Package className={`w-4 h-4 shrink-0 ${isSelected ? "text-emerald-500" : "text-slate-400"}`} />
+                    <div className="truncate">
+                      <p className="text-xs font-bold truncate">{name}</p>
+                      {metaText && (
+                        <p className="text-[10px] text-slate-400 dark:text-slate-500 truncate mt-0.5">
+                          {metaText}
                         </p>
                       )}
                     </div>
@@ -382,7 +499,7 @@ const FormView = ({
                 name="pihakMengetahuiNama"
                 value={formData.pihakMengetahuiNama || formData.mengetahuiNama || ""}
                 onChange={handleInputChange}
-                placeholder="Nama pejabat mengetahui..."
+                placeholder="Nama pejabat mejelas..."
                 className={inputCls}
               />
               <input
@@ -422,7 +539,7 @@ const FormView = ({
         </div>
 
         {/* DAFTAR BARANG TABLE CARD */}
-        <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm transition-colors">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm transition-colors overflow-visible pb-24">
           <div className="flex justify-between items-center mb-4">
             <div className="flex items-center gap-2">
               <ClipboardList className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
@@ -444,40 +561,32 @@ const FormView = ({
             </button>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse min-w-[700px]">
+          <div className="overflow-x-auto overflow-y-visible min-h-[260px]">
+            <table className="w-full text-left border-collapse min-w-[750px]">
               <thead>
                 <tr className="border-b border-slate-200 dark:border-slate-800 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                   <th className="py-2.5 px-2 text-center w-10">No</th>
-                  <th className="py-2.5 px-2 w-48">Nama Barang</th>
+                  <th className="py-2.5 px-2 w-52">Nama Barang</th>
                   <th className="py-2.5 px-2 w-28">S/N</th>
                   <th className="py-2.5 px-2 w-16 text-center">Qty</th>
                   <th className="py-2.5 px-2 w-20 text-center">Satuan</th>
-                  <th className="py-2.5 px-2 w-36">Outlet Tujuan</th>
+                  <th className="py-2.5 px-2 w-48">Outlet Tujuan</th>
                   <th className="py-2.5 px-2">Keterangan</th>
                   <th className="py-2.5 px-2 text-center w-10"></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 text-xs">
                 {items.map((item, idx) => (
-                  <tr key={item.id || idx} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+                  <tr key={item.id || idx} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors relative">
                     <td className="py-2 px-2 text-center font-bold text-slate-400 text-[11px]">{idx + 1}</td>
                     
-                    {/* Nama Barang */}
+                    {/* Nama Barang via ItemCombobox Kustom */}
                     <td className="py-2 px-2">
-                      <input
-                        type="text"
-                        list={`inventory-list-${idx}`}
+                      <ItemCombobox
+                        inventory={inventory}
                         value={item.namaBarang || item.nama || ""}
-                        onChange={(e) => handleItemChange(item.id || idx, "namaBarang", e.target.value)}
-                        placeholder="Nama barang..."
-                        className={inputCls}
+                        onChange={(val) => handleItemChange(item.id || idx, "namaBarang", val)}
                       />
-                      <datalist id={`inventory-list-${idx}`}>
-                        {inventory.map((inv, iIdx) => (
-                          <option key={inv.id || iIdx} value={inv.nama || inv.namaBarang} />
-                        ))}
-                      </datalist>
                     </td>
 
                     {/* S/N */}
@@ -513,14 +622,13 @@ const FormView = ({
                       />
                     </td>
 
-                    {/* Outlet Tujuan */}
+                    {/* Outlet Tujuan via OutletCombobox Kustom */}
                     <td className="py-2 px-2">
-                      <input
-                        type="text"
+                      <OutletCombobox
+                        outlets={outlets}
                         value={item.outlet || ""}
-                        onChange={(e) => handleItemChange(item.id || idx, "outlet", e.target.value)}
                         placeholder="Sesuai tujuan..."
-                        className={inputCls}
+                        onChange={(e) => handleItemChange(item.id || idx, "outlet", e.target.value)}
                       />
                     </td>
 
