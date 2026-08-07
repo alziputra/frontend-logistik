@@ -28,6 +28,12 @@ export const addInstansi = async (formData) => {
   const payload = {
     kode: formData.kode || formData.code || "",
     nama: formData.nama || "",
+    status: formData.status || "UPC",
+    kodeCabang: formData.kodeCabang || "",
+    cabangInduk: formData.cabangInduk || "",
+    clustering: formData.clustering || "NON CLUSTER",
+    jenis: formData.jenis || "KONVEN",
+    area: formData.area || "AREA BEKASI",
   };
   const response = await apiClient.post('/instansi', payload);
   return response.data;
@@ -37,6 +43,12 @@ export const updateInstansi = async (id, formData) => {
   const payload = {
     kode: formData.kode || formData.code || "",
     nama: formData.nama || "",
+    status: formData.status,
+    kodeCabang: formData.kodeCabang,
+    cabangInduk: formData.cabangInduk,
+    clustering: formData.clustering,
+    jenis: formData.jenis,
+    area: formData.area,
   };
   const response = await apiClient.put(`/instansi/${id}`, payload);
   return response.data;

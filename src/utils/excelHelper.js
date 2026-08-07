@@ -90,11 +90,13 @@ export const importFromExcel = (file, labelToKeyMap = null) => {
           });
 
           parsedData = parsedData.map((row) => {
-            const mappedRow = {};
+            const mappedRow = { ...row };
             Object.keys(row).forEach((colHeader) => {
               const cleanedHeader = colHeader.toLowerCase().trim();
-              const targetKey = reverseMap[cleanedHeader] || colHeader;
-              mappedRow[targetKey] = row[colHeader];
+              const targetKey = reverseMap[cleanedHeader];
+              if (targetKey) {
+                mappedRow[targetKey] = row[colHeader];
+              }
             });
             return mappedRow;
           });

@@ -1,6 +1,8 @@
 import React, { useState } from "react";
-import { History, Search, FileText, ArrowLeftRight } from "lucide-react";
+import { History, Search, FileText, ArrowLeftRight, Eye, Edit, Trash2 } from "lucide-react";
 import ExcelActionButtons from "../Common/ExcelActionButtons";
+import ConfirmDeleteModal from "../Modal/ConfirmDeleteModal";
+import { deleteTransaksi } from "../../services/transaksiService";
 
 export default function RiwayatTransaksi({
   transactions = [],
@@ -9,17 +11,109 @@ export default function RiwayatTransaksi({
   setItems = () => {},
   setActiveTransaction = () => {},
   setView = () => {},
+  loadAllData = () => {},
+  editDocument = null,
+  viewDocument = null,
 }) {
   const [search, setSearch] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
   const filtered = transactions.filter((t) => {
     const q = search.toLowerCase();
     return (
       t.nomorSurat?.toLowerCase().includes(q) ||
       t.penerimaNama?.toLowerCase().includes(q) ||
-      t.pengirimNama?.toLowerCase().includes(q)
+      t.pengirimNama?.toLowerCase().includes(q) ||
+      t.tujuan?.toLowerCase().includes(q)
     );
   });
+
+  const handleViewLetter = (trx) => {
+    if (viewDocument) {
+      viewDocument(trx);
+      return;
+    }
+    setActiveTransaction(trx);
+    setFormData({
+      id: trx.id,
+      nomorSurat: trx.nomorSurat,
+      jenisTransaksi: trx.jenisTransaksi,
+      tanggal: trx.tanggal,
+      lokasi: trx.lokasi || "Jakarta",
+      tujuan: trx.tujuan || trx.outletTujuan || trx.penerimaInstansi || "",
+      pihak1Nama: trx.pengirimNama || trx.pihak1Nama || "",
+      pihak1Jabatan: trx.pengirimJabatan || trx.pihak1Jabatan || "",
+      pihakMengetahuiNama: trx.mengetahuiNama || trx.pihakMengetahuiNama || "",
+      pihakMengetahuiJabatan: trx.mengetahuiJabatan || trx.pihakMengetahuiJabatan || "",
+      pihak2Nama: trx.penerimaNama || trx.pihak2Nama || "",
+      pihak2Jabatan: trx.penerimaJabatan || trx.pihak2Jabatan || "",
+    });
+    setItems(
+      (trx.items || []).map((item, idx) => ({
+        id: item.id || idx + 1,
+        namaBarang: item.namaBarang || item.nama || "",
+        nama: item.nama || item.namaBarang || "",
+        jumlah: Number(item.jumlah || item.kuantitas || 1),
+        kuantitas: Number(item.kuantitas || item.jumlah || 1),
+        satuan: item.satuan || "Unit",
+        sn: item.sn || "",
+        outlet: item.outlet || trx.tujuan || "",
+        keterangan: item.keterangan || "",
+      }))
+    );
+    setView("preview");
+  };
+
+  const handleEditLetter = (trx) => {
+    if (editDocument) {
+      editDocument(trx);
+      return;
+    }
+    setActiveTransaction(trx);
+    setFormData({
+      id: trx.id,
+      nomorSurat: trx.nomorSurat,
+      jenisTransaksi: trx.jenisTransaksi,
+      tanggal: trx.tanggal,
+      lokasi: trx.lokasi || "Jakarta",
+      tujuan: trx.tujuan || trx.outletTujuan || trx.penerimaInstansi || "",
+      pihak1Nama: trx.pengirimNama || trx.pihak1Nama || "",
+      pihak1Jabatan: trx.pengirimJabatan || trx.pihak1Jabatan || "",
+      pihakMengetahuiNama: trx.mengetahuiNama || trx.pihakMengetahuiNama || "",
+      pihakMengetahuiJabatan: trx.mengetahuiJabatan || trx.pihakMengetahuiJabatan || "",
+      pihak2Nama: trx.penerimaNama || trx.pihak2Nama || "",
+      pihak2Jabatan: trx.penerimaJabatan || trx.pihak2Jabatan || "",
+    });
+    setItems(
+      (trx.items || []).map((item, idx) => ({
+        id: item.id || idx + 1,
+        namaBarang: item.namaBarang || item.nama || "",
+        nama: item.nama || item.namaBarang || "",
+        jumlah: Number(item.jumlah || item.kuantitas || 1),
+        kuantitas: Number(item.kuantitas || item.jumlah || 1),
+        satuan: item.satuan || "Unit",
+        sn: item.sn || "",
+        outlet: item.outlet || trx.tujuan || "",
+        keterangan: item.keterangan || "",
+      }))
+    );
+    setView("form");
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteTarget) return;
+    try {
+      if (deleteTarget.id) {
+        await deleteTransaksi(deleteTarget.id);
+      }
+      setTransactions((prev) => prev.filter((t) => t.id !== deleteTarget.id));
+      if (loadAllData) loadAllData();
+    } catch (err) {
+      console.error("Gagal menghapus surat transaksi:", err);
+    } finally {
+      setDeleteTarget(null);
+    }
+  };
 
   return (
     <div className="max-w-7xl mx-auto p-6 animate-in fade-in duration-300">
@@ -66,37 +160,71 @@ export default function RiwayatTransaksi({
           <table className="w-full text-left text-xs whitespace-nowrap">
             <thead className="bg-slate-950 text-slate-400 border-b border-slate-800 font-bold uppercase tracking-wider">
               <tr>
-                <th className="px-6 py-4">No</th>
+                <th className="px-6 py-4 w-12 text-center">No</th>
                 <th className="px-6 py-4">Nomor Surat</th>
                 <th className="px-6 py-4">Tanggal</th>
                 <th className="px-6 py-4">Jenis Transaksi</th>
                 <th className="px-6 py-4">Pengirim ➔ Penerima</th>
                 <th className="px-6 py-4 text-center">Jumlah Barang</th>
+                <th className="px-6 py-4 text-center w-28">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800">
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan="6" className="px-6 py-8 text-center text-slate-500 italic">
+                  <td colSpan="7" className="px-6 py-8 text-center text-slate-500 italic">
                     Belum ada riwayat transaksi ditemukan.
                   </td>
                 </tr>
               ) : (
                 filtered.map((trx, idx) => (
                   <tr key={trx.id || idx} className="hover:bg-slate-800/50 transition-colors">
-                    <td className="px-6 py-4 text-slate-400">{idx + 1}</td>
+                    <td className="px-6 py-4 text-center text-slate-400">{idx + 1}</td>
                     <td className="px-6 py-4 font-bold text-slate-100 font-mono">{trx.nomorSurat}</td>
                     <td className="px-6 py-4 text-slate-300">{trx.tanggal}</td>
                     <td className="px-6 py-4">
-                      <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold border ${trx.jenisTransaksi === "Barang Masuk" ? "bg-emerald-950/80 text-emerald-400 border-emerald-800/40" : "bg-orange-950/80 text-orange-400 border-orange-800/40"}`}>
+                      <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold border ${trx.jenisTransaksi === "Barang Masuk" ? "bg-emerald-950/80 text-emerald-400 border-emerald-800/40" : "bg-amber-950/80 text-amber-400 border-amber-800/40"}`}>
                         {trx.jenisTransaksi}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-slate-300">
-                      {trx.pengirimNama || "-"} ➔ {trx.penerimaNama || "-"}
+                      {trx.pengirimNama || trx.pihak1Nama || "-"} ➔ {trx.penerimaNama || trx.pihak2Nama || trx.tujuan || "-"}
                     </td>
                     <td className="px-6 py-4 text-center font-bold text-slate-200">
                       {trx.items?.length || 0} Item
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <div className="flex items-center justify-center gap-1.5">
+                        {/* Lihat / Preview Surat (Icon Only) */}
+                        <button
+                          type="button"
+                          onClick={() => handleViewLetter(trx)}
+                          className="p-2 bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-400 border border-emerald-500/30 rounded-xl transition-all shadow-sm hover:shadow-md cursor-pointer active:scale-95 flex items-center justify-center shrink-0"
+                          title="Lihat / Cetak Surat"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
+
+                        {/* Edit Surat (Icon Only) */}
+                        <button
+                          type="button"
+                          onClick={() => handleEditLetter(trx)}
+                          className="p-2 bg-blue-600/20 hover:bg-blue-600/40 text-blue-400 border border-blue-500/30 rounded-xl transition-all shadow-sm hover:shadow-md cursor-pointer active:scale-95 flex items-center justify-center shrink-0"
+                          title="Edit Surat"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+
+                        {/* Hapus Surat (Icon Only -> Membuka ConfirmDeleteModal) */}
+                        <button
+                          type="button"
+                          onClick={() => setDeleteTarget(trx)}
+                          className="p-2 bg-rose-600/20 hover:bg-rose-600/40 text-rose-400 border border-rose-500/30 rounded-xl transition-all shadow-sm hover:shadow-md cursor-pointer active:scale-95 flex items-center justify-center shrink-0"
+                          title="Hapus Surat"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -105,6 +233,14 @@ export default function RiwayatTransaksi({
           </table>
         </div>
       </div>
+
+      {/* Global Confirmation Delete Modal */}
+      <ConfirmDeleteModal
+        show={!!deleteTarget}
+        name={deleteTarget ? `surat ${deleteTarget.nomorSurat}` : ""}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </div>
   );
 }

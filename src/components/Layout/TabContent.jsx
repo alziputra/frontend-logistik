@@ -61,6 +61,8 @@ export default function TabContent({
   removeItem = () => {},
   handleSaveTransaction = () => {},
   isSaving = false,
+  editDocument = () => {},
+  viewDocument = () => {},
   setView = () => {},
   user = {},
   handleUpdateRole = () => {},
@@ -111,20 +113,57 @@ export default function TabContent({
         </Panel>
       )}
 
-      {has("form") && (
-        <Panel id="form" activeTab={activeTab}>
-          <FormView
-            formData={formData}
-            handleInputChange={handleInputChange}
-            items={items}
-            handleItemChange={handleItemChange}
-            addItem={addItem}
-            removeItem={removeItem}
-            setView={setView}
-            inventory={inventory}
-            outlets={outlets}
-          />
-        </Panel>
+      {/* BUAT SURAT / EDIT SURAT (DESKTOP SPLIT-VIEW) VS LIHAT SURAT (FULL DOKUMEN PREVIEW) */}
+      {(has("form") || has("preview") || activeTab === "form" || activeTab === "preview") && (
+        <div
+          id="form_preview_panel"
+          className={activeTab === "form" || activeTab === "preview" ? "block animate-in fade-in duration-300" : "hidden"}
+        >
+          <div className="w-full max-w-[1700px] mx-auto pt-6 pb-2 px-2 sm:p-4 lg:p-6">
+            {activeTab === "preview" ? (
+              /* MODE LIHAT SURAT (👁️): Tampilan Dokumen Penuh di Tengah (Clean Full-Width View) */
+              <div className="w-full max-w-4xl mx-auto">
+                <PreviewView
+                  formData={formData}
+                  items={items}
+                  activeTransaction={activeTransaction}
+                  setView={setView}
+                  handleSaveTransaction={handleSaveTransaction}
+                  isSaving={isSaving}
+                  isViewOnly={true}
+                />
+              </div>
+            ) : (
+              /* MODE EDIT SURAT (✏️) ATAU BUAT SURAT BARU (➕): Split-View Form (Kiri) & Live Preview (Kanan) */
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                <div className="lg:col-span-6 xl:col-span-6">
+                  <FormView
+                    formData={formData}
+                    handleInputChange={handleInputChange}
+                    items={items}
+                    handleItemChange={handleItemChange}
+                    addItem={addItem}
+                    removeItem={removeItem}
+                    setView={setView}
+                    inventory={inventory}
+                    outlets={outlets}
+                  />
+                </div>
+
+                <div className="lg:col-span-6 xl:col-span-6 sticky top-6">
+                  <PreviewView
+                    formData={formData}
+                    items={items}
+                    activeTransaction={activeTransaction}
+                    setView={setView}
+                    handleSaveTransaction={handleSaveTransaction}
+                    isSaving={isSaving}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
       )}
 
       {has("master_barang") && (
@@ -166,30 +205,26 @@ export default function TabContent({
         </Panel>
       )}
 
-      {has("perangkat_printer") && (
-        <Panel id="perangkat_printer" activeTab={activeTab}>
+      {has("printer") && (
+        <Panel id="printer" activeTab={activeTab}>
           <DataPrinter 
-            userRole={userRole} 
             printers={printers} 
-            outlets={outlets} 
-            inventory={inventory} 
-            filterStatus={printerFilter} 
-            setFilterStatus={setPrinterFilter} 
-            loadAllData={loadAllData}
+            userRole={userRole} 
+            loadAllData={loadAllData} 
+            printerFilter={printerFilter}
+            setPrinterFilter={setPrinterFilter}
           />
         </Panel>
       )}
 
-      {has("perangkat_komputer") && (
-        <Panel id="perangkat_komputer" activeTab={activeTab}>
+      {has("komputer") && (
+        <Panel id="komputer" activeTab={activeTab}>
           <DataKomputer 
-            userRole={userRole} 
             computers={computers} 
-            outlets={outlets} 
-            inventory={inventory} 
-            filterStatus={computerFilter} 
-            setFilterStatus={setComputerFilter} 
+            userRole={userRole} 
             loadAllData={loadAllData}
+            computerFilter={computerFilter}
+            setComputerFilter={setComputerFilter}
           />
         </Panel>
       )}
@@ -240,10 +275,6 @@ export default function TabContent({
       )}
 
       <Panel id="spk_renovasi" activeTab={activeTab}>
-        <BangunanSPK type="renovasi" setView={setView} activeTab={activeTab} />
-      </Panel>
-
-      <Panel id="spk_elektronik" activeTab={activeTab}>
         <BangunanSPK type="elektronik" setView={setView} activeTab={activeTab} />
       </Panel>
 
@@ -268,23 +299,14 @@ export default function TabContent({
             setItems={setItems}
             setActiveTransaction={setActiveTransaction}
             setView={setView}
+            editDocument={editDocument}
+            viewDocument={viewDocument}
             currentTab={activeTab}
             spkHistoryProp={spkHistory}
             soppHistoryProp={soppHistory}
           />
         </Panel>
       )}
-
-      <Panel id="preview" activeTab={activeTab}>
-        <PreviewView
-          formData={formData}
-          items={items}
-          activeTransaction={activeTransaction}
-          setView={setView}
-          handleSaveTransaction={handleSaveTransaction}
-          isSaving={isSaving}
-        />
-      </Panel>
 
       {has("kelola_user") && (
         <Panel id="kelola_user" activeTab={activeTab}>
@@ -305,15 +327,9 @@ export default function TabContent({
       {has("notifikasi") && (
         <Panel id="notifikasi" activeTab={activeTab}>
           <NotificationPageView
-            printers={printers}
-            computers={computers}
-            buildingLands={buildingLands}
-            buildingSewas={buildingSewas}
+            notifSewa={notifSewa}
+            notifSewaKomputer={notifSewaKomputer}
             setView={setView}
-            setLandFilter={setLandFilter}
-            setSewaFilter={setSewaFilter}
-            setPrinterFilter={setPrinterFilter}
-            setComputerFilter={setComputerFilter}
           />
         </Panel>
       )}

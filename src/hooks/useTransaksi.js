@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { addTransaksi } from "../services/transaksiService";
+import { addTransaksi, updateTransaksi } from "../services/transaksiService";
 import { createInitialFormData, createInitialItem } from "../constants";
 
 export function useTransaksi({
@@ -11,6 +11,7 @@ export function useTransaksi({
   setActivityLogs = () => {},
   showNotif = () => {},
   navigateTo = () => {},
+  loadAllData = () => {},
 }) {
   const [formData, setFormData] = useState(() => createInitialFormData());
   const [items, setItems] = useState(() => [createInitialItem()]);
@@ -26,6 +27,56 @@ export function useTransaksi({
     setItems([createInitialItem()]);
     setActiveTransaction(null);
     navigateTo("form");
+  };
+
+  const editDocument = (trx) => {
+    if (!trx) return;
+    setActiveTransaction(trx);
+    setFormData({
+      id: trx.id,
+      nomorSurat: trx.nomorSurat || "",
+      jenisTransaksi: trx.jenisTransaksi || "Barang Keluar",
+      tanggal: trx.tanggal || new Date().toISOString().split("T")[0],
+      lokasi: trx.lokasi || "Jakarta",
+      tujuan: trx.tujuan || trx.outletTujuan || trx.penerimaInstansi || "",
+      outletTujuan: trx.outletTujuan || trx.tujuan || trx.penerimaInstansi || "",
+      pihak1Nama: trx.pengirimNama || trx.pihak1Nama || "",
+      pengirimNama: trx.pengirimNama || trx.pihak1Nama || "",
+      pihak1Jabatan: trx.pengirimJabatan || trx.pihak1Jabatan || "",
+      pengirimJabatan: trx.pengirimJabatan || trx.pihak1Jabatan || "",
+      pihak1Instansi: trx.pengirimInstansi || trx.pihak1Instansi || "",
+      pihakMengetahuiNama: trx.mengetahuiNama || trx.pihakMengetahuiNama || "",
+      mengetahuiNama: trx.mengetahuiNama || trx.pihakMengetahuiNama || "",
+      pihakMengetahuiJabatan: trx.mengetahuiJabatan || trx.pihakMengetahuiJabatan || "",
+      mengetahuiJabatan: trx.mengetahuiJabatan || trx.pihakMengetahuiJabatan || "",
+      pihak2Nama: trx.penerimaNama || trx.pihak2Nama || "",
+      penerimaNama: trx.penerimaNama || trx.pihak2Nama || "",
+      pihak2Jabatan: trx.penerimaJabatan || trx.pihak2Jabatan || "",
+      penerimaJabatan: trx.penerimaJabatan || trx.pihak2Jabatan || "",
+      pihak2Instansi: trx.penerimaInstansi || trx.pihak2Instansi || trx.tujuan || "",
+      penerimaInstansi: trx.penerimaInstansi || trx.pihak2Instansi || trx.tujuan || "",
+    });
+
+    const rawItems = trx.items && trx.items.length > 0 ? trx.items : [createInitialItem()];
+    const mappedItems = rawItems.map((item, idx) => ({
+      id: item.id || idx + 1,
+      namaBarang: item.namaBarang || item.nama || "",
+      nama: item.nama || item.namaBarang || "",
+      jumlah: Number(item.jumlah || item.kuantitas || 1),
+      kuantitas: Number(item.kuantitas || item.jumlah || 1),
+      satuan: item.satuan || "Unit",
+      sn: item.sn || "",
+      outlet: item.outlet || trx.tujuan || "",
+      keterangan: item.keterangan || "",
+    }));
+
+    setItems(mappedItems);
+    navigateTo("form");
+  };
+
+  const viewDocument = (trx) => {
+    editDocument(trx);
+    navigateTo("preview");
   };
 
   const addItem = () => setItems((prev) => [...prev, createInitialItem()]);
@@ -96,6 +147,19 @@ export function useTransaksi({
 
   const handleSaveTransaction = async () => {
     if (isSaving) return;
+
+    // 1. Cek duplikasi nomor surat di state lokal transaksi sebelum mengirim ke server
+    if (formData.nomorSurat) {
+      const isDuplicate = transactions.some(
+        (t) => t.nomorSurat?.trim() === formData.nomorSurat.trim() && t.id !== formData.id
+      );
+
+      if (isDuplicate) {
+        showNotif(`Nomor Surat "${formData.nomorSurat}" sudah terdaftar pada sistem!`, "error");
+        return;
+      }
+    }
+
     setIsSaving(true);
     try {
       const payload = {
@@ -121,12 +185,25 @@ export function useTransaksi({
         })),
       };
 
-      const res = await addTransaksi(payload);
-      const savedTrx = res?.transaction || res || payload;
+      let savedTrx;
+      if (formData.id) {
+        const res = await updateTransaksi(formData.id, payload);
+        savedTrx = res?.data?.transaksi || res?.transaction || res?.data || res || payload;
+        showNotif("Transaksi berhasil diperbarui!", "success");
+      } else {
+        const res = await addTransaksi(payload);
+        savedTrx = res?.data?.transaksi || res?.transaction || res?.data || res || payload;
+        showNotif("Transaksi berhasil disimpan!", "success");
+      }
 
-      setTransactions((prev) => [savedTrx, ...prev]);
+      // Re-fetch all fresh data from database directly after saving
+      if (loadAllData) {
+        await loadAllData();
+      } else if (savedTrx) {
+        setTransactions((prev) => [savedTrx, ...prev.filter((t) => t.id !== savedTrx.id)]);
+      }
+
       setActiveTransaction(savedTrx);
-      showNotif("Transaksi berhasil disimpan!", "success");
       navigateTo("riwayat");
     } catch (error) {
       console.error(error);
@@ -145,6 +222,8 @@ export function useTransaksi({
     activeTransaction,
     setActiveTransaction,
     startNewDocument,
+    editDocument,
+    viewDocument,
     addItem,
     removeItem,
     handleInputChange,

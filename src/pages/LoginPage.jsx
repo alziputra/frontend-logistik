@@ -5,6 +5,21 @@ import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import ServerStatusPill from '../components/Notification/ServerStatusPill';
 
+const sanitizeFrontendError = (msg) => {
+  if (!msg || typeof msg !== "string") return "Gagal terhubung ke server database.";
+  if (
+    msg.includes("supabase") ||
+    msg.includes("ENOTFOUND") ||
+    msg.includes("ECONNREFUSED") ||
+    msg.includes("ETIMEDOUT") ||
+    msg.includes("getaddrinfo") ||
+    msg.includes("Sequelize")
+  ) {
+    return "Gagal terhubung ke Server Database Logistik. Silakan periksa jaringan koneksi Anda atau hubungi Administrator.";
+  }
+  return msg;
+};
+
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -32,7 +47,7 @@ export default function LoginPage() {
     if (result.success) {
       navigate('/dashboard', { replace: true });
     } else {
-      setErrorMsg(result.message || 'Login gagal, periksa email dan password Anda');
+      setErrorMsg(sanitizeFrontendError(result.message) || 'Login gagal, periksa email dan password Anda');
     }
   };
 
@@ -99,8 +114,8 @@ export default function LoginPage() {
               <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">
                 Email
               </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+              <div className="relative rounded-2xl shadow-sm">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                   <Mail className="h-5 w-5 text-slate-400" />
                 </div>
                 <input
@@ -108,9 +123,8 @@ export default function LoginPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800/60 border border-slate-300 dark:border-slate-700 rounded-xl focus:bg-white dark:focus:bg-slate-800 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500"
-                  placeholder="Masukkan email anda..."
-                  autoComplete="email"
+                  className="block w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800/60 border border-slate-300 dark:border-slate-700/80 rounded-2xl text-sm font-medium text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors"
+                  placeholder="admin@gmail.com"
                 />
               </div>
             </div>
@@ -119,8 +133,8 @@ export default function LoginPage() {
               <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">
                 Password
               </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+              <div className="relative rounded-2xl shadow-sm">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                   <Lock className="h-5 w-5 text-slate-400" />
                 </div>
                 <input
@@ -128,9 +142,8 @@ export default function LoginPage() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800/60 border border-slate-300 dark:border-slate-700 rounded-xl focus:bg-white dark:focus:bg-slate-800 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500"
+                  className="block w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800/60 border border-slate-300 dark:border-slate-700/80 rounded-2xl text-sm font-medium text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors"
                   placeholder="••••••••"
-                  autoComplete="current-password"
                 />
               </div>
             </div>
@@ -138,25 +151,19 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex justify-center items-center gap-2.5 py-3.5 px-4 border border-emerald-500/30 rounded-xl shadow-lg shadow-emerald-600/20 text-sm font-semibold text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-70 transition-all active:scale-[0.98] cursor-pointer"
+              className="w-full flex justify-center items-center gap-2 py-3.5 px-4 border border-transparent rounded-2xl shadow-lg shadow-emerald-600/20 text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50 transition-all cursor-pointer active:scale-95"
             >
               {loading ? (
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  <span>Memproses...</span>
-                </div>
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
               ) : (
                 <>
-                  <LogIn className="w-5 h-5" /> Masuk ke Sistem
+                  <LogIn className="w-4 h-4" />
+                  <span>Masuk ke Sistem</span>
                 </>
               )}
             </button>
           </form>
         </div>
-
-        <p className="text-center mt-8 text-xs text-slate-500 dark:text-slate-400">
-          © {new Date().getFullYear()} PT Pegadaian (Persero). All rights reserved.
-        </p>
       </div>
     </div>
   );

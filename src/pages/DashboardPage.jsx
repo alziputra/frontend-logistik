@@ -151,6 +151,8 @@ export default function DashboardPage() {
     items, setItems,
     activeTransaction, setActiveTransaction,
     startNewDocument,
+    editDocument,
+    viewDocument,
     addItem, removeItem,
     handleInputChange, handleItemChange,
     handleSaveTransaction,
@@ -164,6 +166,7 @@ export default function DashboardPage() {
     setActivityLogs,
     showNotif,
     navigateTo: handleSetView,
+    loadAllData,
   });
 
   return (
@@ -249,6 +252,8 @@ export default function DashboardPage() {
               removeItem={removeItem}
               handleSaveTransaction={handleSaveTransaction}
               isSaving={isSaving}
+              editDocument={editDocument}
+              viewDocument={viewDocument}
               setView={handleSetView}
               user={user}
               handleUpdateRole={handleUpdateRole}

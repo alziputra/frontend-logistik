@@ -41,7 +41,7 @@ const ExcelActionButtons = ({
 
     try {
       setIsImporting(true);
-      const parsedData = await importFromExcel(file, labelToKeyMap);
+      const parsedData = await importFromExcel(file, labelToKeyMap || headersMap);
       if (onImport) {
         await onImport(parsedData);
       }
