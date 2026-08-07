@@ -117,9 +117,9 @@ export default function TabContent({
       {(has("form") || has("preview") || activeTab === "form" || activeTab === "preview") && (
         <div
           id="form_preview_panel"
-          className={activeTab === "form" || activeTab === "preview" ? "block animate-in fade-in duration-300" : "hidden"}
+          className={activeTab === "form" || activeTab === "preview" ? "block animate-in fade-in duration-300 print:block print:p-0 print:m-0" : "hidden"}
         >
-          <div className="w-full max-w-[1700px] mx-auto pt-6 pb-2 px-2 sm:p-4 lg:p-6">
+          <div className="w-full max-w-[1700px] mx-auto pt-6 pb-2 px-2 sm:p-4 lg:p-6 print:p-0 print:m-0 print:max-w-full">
             {activeTab === "preview" ? (
               /* MODE LIHAT SURAT (👁️): Tampilan Dokumen Penuh di Tengah (Clean Full-Width View) */
               <div className="w-full max-w-4xl mx-auto">

@@ -197,7 +197,7 @@ const FormView = ({
   const nomorIsValid = isNomorValid(formData.nomorSurat);
 
   return (
-    <div className="w-full pt-5 sm:pt-2 pb-6">
+    <div className="w-full pt-5 sm:pt-2 pb-6 print:hidden">
       <form onSubmit={(e) => e.preventDefault()} className="space-y-4 sm:space-y-6">
         
         {/* Header Card Form */}

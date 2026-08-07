@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Printer, CheckCircle2, Maximize2, Minimize2, ArrowLeft, AlertCircle, X } from "lucide-react";
+import React from "react";
+import { Printer, CheckCircle2, ArrowLeft, AlertCircle } from "lucide-react";
 
 const formatIndonesianDate = (dateStr) => {
   if (!dateStr) return "4 Agustus 2026";
@@ -29,8 +29,6 @@ const PreviewView = ({
   isSaving = false,
   isViewOnly = false,
 }) => {
-  const [isFullscreen, setIsFullscreen] = useState(false);
-
   const nomorIsValid = checkNomorValid(formData.nomorSurat);
 
   const handlePrint = () => {
@@ -60,16 +58,14 @@ const PreviewView = ({
     formData.penerimaInstansi ||
     "........................";
 
-  const renderDocumentContent = (isModal = false) => (
+  const renderDocumentContent = () => (
     <div
-      className={`p-5 sm:p-10 bg-white text-black flex flex-col justify-between ${
-        isModal ? "min-h-[1050px] w-full max-w-4xl mx-auto shadow-2xl rounded-2xl" : "min-h-[920px] sm:min-h-[980px] print:min-h-[279mm] print:max-h-[279mm] w-full min-w-[600px] sm:min-w-0"
-      }`}
-      id={isModal ? "printable-area-modal" : "printable-area"}
+      className="p-5 sm:p-8 bg-white text-black flex flex-col justify-between min-h-[900px] sm:min-h-[950px] print:min-h-[270mm] print:max-h-[270mm] w-full min-w-[600px] sm:min-w-0"
+      id="printable-area"
     >
       <div>
         {/* Kop Surat Header */}
-        <div className="flex items-center justify-between pb-2.5">
+        <div className="flex items-center justify-between pb-4 sm:pb-5">
           {/* Pegadaian Official Logo */}
           <div className="flex items-center">
             <img
@@ -91,31 +87,31 @@ const PreviewView = ({
           </div>
         </div>
 
-        <div className="border-b-[3px] border-black mb-3 sm:mb-4"></div>
+        <div className="border-b-[3px] border-black mb-6 sm:mb-8"></div>
 
         {/* Document Title */}
-        <div className="text-center mb-3 sm:mb-4">
+        <div className="text-center mb-6 sm:mb-8">
           <h2 className="text-xs sm:text-sm font-extrabold underline uppercase text-black leading-tight tracking-wide">
             BERITA ACARA SERAH TERIMA {formData.jenisTransaksi ? formData.jenisTransaksi.toUpperCase() : "BARANG KELUAR"}
           </h2>
-          <p className="text-[11px] sm:text-xs text-black mt-0.5 font-medium">
+          <p className="text-[11px] sm:text-xs text-black mt-1 font-medium">
             Nomor: {formData.nomorSurat || "...../00108.00/04/2026"}
           </p>
         </div>
 
         {/* Yellow Banner 1: Penerima Barang */}
-        <div className="bg-[#FFE600] px-3 py-1.5 mb-3 text-[11px] sm:text-xs font-bold text-black border border-black flex items-center gap-2">
+        <div className="bg-[#FFE600] px-3 py-1.5 mb-3.5 text-[11px] sm:text-xs font-bold text-black border border-black flex items-center gap-2">
           <span>Penerima Barang:</span>
           <span className="font-extrabold uppercase">{tujuanStr}</span>
         </div>
 
         {/* Opening Paragraph */}
-        <p className="text-[11px] sm:text-xs text-black leading-relaxed mb-3">
+        <p className="text-[11px] sm:text-xs text-black leading-relaxed mb-3.5">
           Pada hari ini, tanggal <strong className="font-bold">{formatIndonesianDate(formData.tanggal)}</strong> bertempat di <strong className="font-bold">{formData.lokasi || "Jakarta"}</strong>, telah dilakukan serah terima barang dengan rincian sebagai berikut:
         </p>
 
         {/* Items Table */}
-        <table className="w-full border-collapse mb-3 text-[11px] sm:text-xs border border-black">
+        <table className="w-full border-collapse mb-3.5 text-[11px] sm:text-xs border border-black">
           <thead>
             <tr className="bg-gray-100 font-bold text-black border-b border-black">
               <th className="border border-black py-1.5 px-1.5 sm:px-2 text-center w-[6%] font-bold">No</th>
@@ -143,19 +139,19 @@ const PreviewView = ({
         </table>
 
         {/* Closing Paragraph */}
-        <p className="text-[11px] sm:text-xs text-black leading-relaxed mb-3">
+        <p className="text-[11px] sm:text-xs text-black leading-relaxed mb-3.5">
           Demikian Berita Acara Serah Terima Barang ini dibuat dengan sebenarnya dalam keadaan sadar dan tanpa paksaan dari pihak manapun, untuk dapat dipergunakan sebagaimana mestinya.
         </p>
 
         {/* Yellow Banner 2: NOTE */}
-        <div className="bg-[#FFE600] px-3 py-1.5 mb-4 sm:mb-5 text-[11px] sm:text-xs font-bold text-black border border-black">
+        <div className="bg-[#FFE600] px-3 py-1.5 mb-4 sm:mb-6 text-[11px] sm:text-xs font-bold text-black border border-black">
           NOTE : MOHON UNTUK DISIMPAN SEBAGAI BUKTI SAH SERAH TERIMA BARANG
         </div>
 
         {/* Signature Section (Yang Menerima | Yang Menyerahkan | Mengetahui) */}
-        <div className="grid grid-cols-3 gap-2 sm:gap-4 text-[10px] sm:text-xs text-black mb-6 sm:mb-8">
-          <div>
-            <p className="font-semibold mb-8 sm:mb-12">Yang Menerima,</p>
+        <div className="grid grid-cols-3 gap-2 sm:gap-4 text-[10px] sm:text-xs text-black mb-4 sm:mb-6 print:flex print:justify-between print:gap-4">
+          <div className="print:w-1/3">
+            <p className="font-semibold mb-12 sm:mb-16">Yang Menerima,</p>
             <p className="font-bold underline uppercase text-black break-words">
               {formData.pihak2Nama || formData.penerimaNama || "........................"}
             </p>
@@ -164,8 +160,8 @@ const PreviewView = ({
             </p>
           </div>
 
-          <div>
-            <p className="font-semibold mb-8 sm:mb-12">Yang Menyerahkan,</p>
+          <div className="print:w-1/3">
+            <p className="font-semibold mb-12 sm:mb-16">Yang Menyerahkan,</p>
             <p className="font-bold underline uppercase text-black break-words">
               {formData.pihak1Nama || formData.pengirimNama || "AHMAD DENDY SYAPUTRA"}
             </p>
@@ -174,8 +170,8 @@ const PreviewView = ({
             </p>
           </div>
 
-          <div>
-            <p className="font-semibold mb-8 sm:mb-12">Mengetahui,</p>
+          <div className="print:w-1/3">
+            <p className="font-semibold mb-12 sm:mb-16">Mengetahui,</p>
             <p className="font-bold underline uppercase text-black break-words">
               {formData.pihakMengetahuiNama || formData.mengetahuiNama || "ZONI RAHMAWAN PUTRA"}
             </p>
@@ -187,7 +183,7 @@ const PreviewView = ({
       </div>
 
       {/* Official Footer PT PEGADAIAN - Pinned to bottom of A4 paper */}
-      <div className="official-footer pt-2.5 border-t-2 border-black text-black mt-auto">
+      <div className="official-footer pt-1.5 border-t-2 border-black text-black mt-auto pb-0.5">
         <p className="font-bold text-xs uppercase mb-0.5">PT. PEGADAIAN</p>
         <p className="text-[10px] sm:text-[11px] text-gray-700 leading-tight">Kantor Wilayah VIII Jakarta 1</p>
         <p className="text-[10px] sm:text-[11px] text-gray-700 leading-tight">Jl. Senen Raya No. 36 Jakarta Pusat 10410</p>
@@ -199,42 +195,37 @@ const PreviewView = ({
   return (
     <div className="w-full pt-5 sm:pt-2 pb-6 print:p-0">
       
-      {/* Print Specific CSS Overrides */}
+      {/* Strict A4 Single-Page Print Specific CSS Overrides */}
       <style>{`
         @media print {
           @page {
             size: A4 portrait;
-            margin: 8mm 10mm 8mm 10mm;
+            margin: 5mm 8mm 8mm 8mm;
           }
           html, body, #root, main, section, article {
-            background: #ffffff !important;
-            color: #000000 !important;
             margin: 0 !important;
             padding: 0 !important;
-            width: 100% !important;
-            height: 100% !important;
-            overflow: visible !important;
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
+            background: #ffffff !important;
+          }
+          body * {
+            visibility: hidden !important;
           }
           .print\\:hidden {
             display: none !important;
           }
-          .print-wrapper {
-            margin: 0 !important;
-            padding: 0 !important;
-            border: none !important;
-            box-shadow: none !important;
-            border-radius: 0 !important;
-            background: #ffffff !important;
-            width: 100% !important;
-            max-width: 100% !important;
+          #printable-area, #printable-area * {
+            visibility: visible !important;
           }
-          #printable-area, #printable-area-modal {
+          #printable-area {
+            position: fixed !important;
+            left: 0 !important;
+            top: 0 !important;
             width: 100% !important;
             max-width: 100% !important;
+            height: 100% !important;
+            max-height: 100% !important;
             margin: 0 !important;
-            padding: 0 !important;
+            padding: 15px 25px 12px 25px !important;
             box-shadow: none !important;
             border: none !important;
             border-radius: 0 !important;
@@ -242,20 +233,30 @@ const PreviewView = ({
             display: flex !important;
             flex-direction: column !important;
             justify-content: space-between !important;
-            min-height: calc(297mm - 16mm) !important;
-            max-height: calc(297mm - 16mm) !important;
             box-sizing: border-box !important;
             page-break-inside: avoid !important;
             break-inside: avoid !important;
           }
+          .bg-\\[\\#FFE600\\] {
+            background-color: #FFE600 !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          .bg-gray-100 {
+            background-color: #F3F4F6 !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          table, tr, td, th {
+            page-break-inside: avoid !important;
+          }
           .official-footer {
             margin-top: auto !important;
-            padding-top: 6px !important;
+            padding-top: 4px !important;
+            padding-bottom: 0px !important;
             border-top: 2px solid #000000 !important;
             page-break-inside: avoid !important;
             break-inside: avoid !important;
-            page-break-after: avoid !important;
-            break-after: avoid !important;
           }
         }
       `}</style>
@@ -291,17 +292,6 @@ const PreviewView = ({
               <span>Edit Kembali</span>
             </button>
           )}
-
-          {/* Tombol Perbesar Tampilan */}
-          <button
-            type="button"
-            onClick={() => setIsFullscreen(true)}
-            className="flex items-center gap-1.5 text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 font-semibold text-xs transition-all cursor-pointer shadow-sm active:scale-95 shrink-0"
-            title="Perbesar Tampilan Surat (Fullscreen)"
-          >
-            <Maximize2 className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-            <span className="hidden sm:inline">Perbesar</span>
-          </button>
         </div>
 
         <div className="flex items-center gap-2">
@@ -341,63 +331,9 @@ const PreviewView = ({
       {/* Printable Area Container Card */}
       <div className="print-wrapper w-full bg-white shadow-xl print:shadow-none relative text-slate-900 rounded-2xl print:rounded-none overflow-hidden print:overflow-visible border border-slate-200 print:border-none">
         <div className="overflow-x-auto bg-white">
-          {renderDocumentContent(false)}
+          {renderDocumentContent()}
         </div>
       </div>
-
-      {/* Fullscreen Document Zoom Modal */}
-      {isFullscreen && (
-        <div className="fixed inset-0 z-[9999] bg-slate-950/90 backdrop-blur-md p-3 sm:p-6 overflow-y-auto flex flex-col items-center print:p-0 print:bg-white print:static animate-in fade-in duration-200">
-          
-          {/* Sticky Top Header Control Bar */}
-          <div className="w-full max-w-4xl bg-slate-900 border border-slate-800 rounded-2xl p-3 mb-4 flex items-center justify-between sticky top-0 z-50 shadow-2xl print:hidden">
-            {/* Left Side: Tombol Kembali & Title */}
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={() => setIsFullscreen(false)}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-sm active:scale-95"
-                title="Kembali ke tampilan normal"
-              >
-                <ArrowLeft className="w-4 h-4 text-emerald-400" />
-                <span>Kembali</span>
-              </button>
-              
-              <div className="hidden sm:flex items-center gap-2 text-slate-200 font-bold text-xs sm:text-sm border-l border-slate-700 pl-3">
-                <Maximize2 className="w-4 h-4 text-purple-400" />
-                <span>Pratinjau Surat Ukuran Penuh (A4)</span>
-              </div>
-            </div>
-
-            {/* Right Side: Tombol Cetak & Tutup */}
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={handlePrint}
-                className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 text-white px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-sm active:scale-95"
-              >
-                <Printer className="w-3.5 h-3.5" />
-                <span>Cetak Surat</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setIsFullscreen(false)}
-                className="flex items-center gap-1 px-3 py-1.5 bg-rose-600/20 hover:bg-rose-600/40 text-rose-300 border border-rose-500/30 rounded-xl text-xs font-bold transition-colors cursor-pointer"
-                title="Tutup Perbesar"
-              >
-                <X className="w-4 h-4" />
-                <span className="hidden sm:inline">Tutup</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Center A4 Document Container */}
-          <div className="w-full max-w-4xl my-auto overflow-x-auto flex justify-center pb-8">
-            {renderDocumentContent(true)}
-          </div>
-        </div>
-      )}
     </div>
   );
 };
