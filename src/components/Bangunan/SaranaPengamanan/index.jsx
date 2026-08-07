@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Shield, Search, Plus, FileSpreadsheet, Edit, Trash2, X, Loader2 } from "lucide-react";
 import { exportToExcel as exportExcelUtil } from "../../../utils/excelUtils";
+import ExcelActionButtons from "../../Common/ExcelActionButtons";
 import { addPengamananKorporasi, updatePengamananKorporasi, deletePengamananKorporasi } from "../../../services/pengamananService";
 
 export default function BangunanSarana({
@@ -99,12 +100,37 @@ export default function BangunanSarana({
         </div>
 
         <div className="flex items-center gap-3 w-full lg:w-auto justify-end">
-          <button
-            onClick={exportToExcel}
-            className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-sm transition-colors cursor-pointer"
-          >
-            <FileSpreadsheet className="w-4 h-4" /> Export Excel
-          </button>
+          <ExcelActionButtons
+            data={filteredData}
+            fileName="Pengamanan_Korporasi_Pegadaian"
+            headersMap={{
+              nama_unit_kerja: "Unit Kerja",
+              kode_unit_kerja: "Kode Unit Kerja",
+              vendor: "Vendor / Mitra",
+              jumlah_cctv: "Jumlah CCTV",
+            }}
+            onImport={async (parsedRows) => {
+              if (!parsedRows || parsedRows.length === 0) return;
+              let count = 0;
+              for (const row of parsedRows) {
+                const nama_unit_kerja = row.nama_unit_kerja || row["Unit Kerja"] || row["nama_unit_kerja"];
+                if (!nama_unit_kerja) continue;
+                try {
+                  await addPengamananKorporasi({
+                    nama_unit_kerja,
+                    kode_unit_kerja: row.kode_unit_kerja || row["Kode Unit Kerja"] || "-",
+                    vendor: row.vendor || row["Vendor / Mitra"] || "-",
+                    jumlah_cctv: Number(row.jumlah_cctv || row["Jumlah CCTV"] || 0),
+                  });
+                  count++;
+                } catch (err) {
+                  console.error("Error import sarana pengamanan:", err);
+                }
+              }
+              alert(`${count} data sarana pengamanan berhasil diimpor.`);
+              if (loadAllData) loadAllData();
+            }}
+          />
           {userRole === "admin" && (
             <button
               onClick={openAdd}

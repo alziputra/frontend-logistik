@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Building2, Search, Plus, Edit, Trash2, MapPin } from "lucide-react";
 import { addInstansi, updateInstansi, deleteInstansi } from "../../services/instansiService";
 import OutletFormModal from "./OutletFormModal";
+import ExcelActionButtons from "../Common/ExcelActionButtons";
 
 export default function MasterOutlet({ outlets = [], userRole = "admin", loadAllData }) {
   const [searchQuery, setSearchQuery] = useState("");
@@ -86,6 +87,31 @@ export default function MasterOutlet({ outlets = [], userRole = "admin", loadAll
               className="w-full pl-9 pr-4 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-slate-100 outline-none focus:border-emerald-500"
             />
           </div>
+          <ExcelActionButtons
+            data={filteredOutlets}
+            fileName="Master_Instansi_Outlet_Pegadaian"
+            headersMap={{
+              code: "Kode Instansi",
+              nama: "Nama Outlet / Instansi",
+            }}
+            onImport={async (parsedRows) => {
+              if (!parsedRows || parsedRows.length === 0) return;
+              let successCount = 0;
+              for (const row of parsedRows) {
+                const nama = row.nama || row["Nama Outlet / Instansi"] || row["nama"];
+                const code = row.code || row.kode || row["Kode Instansi"] || row["kode"];
+                if (!nama) continue;
+                try {
+                  await addInstansi({ code: code || "INST", nama });
+                  successCount++;
+                } catch (err) {
+                  console.error("Error import outlet row:", err);
+                }
+              }
+              alert(`${successCount} data instansi/outlet berhasil diimpor.`);
+              if (loadAllData) loadAllData();
+            }}
+          />
           {userRole === "admin" && (
             <button
               onClick={handleOpenAdd}

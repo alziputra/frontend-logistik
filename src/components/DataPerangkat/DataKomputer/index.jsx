@@ -6,6 +6,7 @@ import KomputerModal from "./KomputerModal";
 import QrLabelModal from "../DataPrinter/QrLabelModal";
 import ConfirmDeleteModal from "../../Modal/ConfirmDeleteModal";
 import ToastNotif from "../../Modal/ToastNotif";
+import ExcelActionButtons from "../../Common/ExcelActionButtons";
 import { addKomputer, updateKomputer, deleteKomputer } from "../../../services/komputerService";
 
 export default function DataKomputer({
@@ -94,6 +95,40 @@ export default function DataKomputer({
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
+          <ExcelActionButtons
+            data={filteredData}
+            fileName="Data_Komputer_Pegadaian"
+            headersMap={{
+              produk: "Model / Perangkat",
+              sn: "Serial Number",
+              outlet: "Outlet / Unit Kerja",
+              ipAddress: "IP Address",
+              status: "Status",
+            }}
+            onImport={async (parsedRows) => {
+              if (!parsedRows || parsedRows.length === 0) return;
+              let count = 0;
+              for (const row of parsedRows) {
+                const produk = row.produk || row["Model / Perangkat"] || row["produk"];
+                const sn = row.sn || row["Serial Number"] || row["sn"];
+                if (!produk || !sn) continue;
+                try {
+                  await addKomputer({
+                    produk,
+                    sn,
+                    outlet: row.outlet || row["Outlet / Unit Kerja"] || "-",
+                    ipAddress: row.ipAddress || row["IP Address"] || "-",
+                    status: row.status || row["Status"] || "Aktif",
+                  });
+                  count++;
+                } catch (err) {
+                  console.error("Error import komputer:", err);
+                }
+              }
+              setNotif({ show: true, message: `${count} data komputer berhasil diimpor!`, type: "success" });
+              if (loadAllData) loadAllData();
+            }}
+          />
           {userRole === "admin" && (
             <button
               onClick={() => { setEditingId(null); setFormData({}); setIsModalOpen(true); }}

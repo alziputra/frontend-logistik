@@ -6,6 +6,7 @@ import PrinterModal from "./PrinterModal";
 import QrLabelModal from "./QrLabelModal";
 import ConfirmDeleteModal from "../../Modal/ConfirmDeleteModal";
 import ToastNotif from "../../Modal/ToastNotif";
+import ExcelActionButtons from "../../Common/ExcelActionButtons";
 import { addPrinter, updatePrinter, deletePrinter } from "../../../services/printerService";
 
 export default function DataPrinter({
@@ -93,6 +94,38 @@ export default function DataPrinter({
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
+          <ExcelActionButtons
+            data={filteredData}
+            fileName="Data_Printer_Pegadaian"
+            headersMap={{
+              produk: "Model Printer",
+              sn: "Serial Number",
+              outlet: "Outlet / Unit Kerja",
+              status: "Status",
+            }}
+            onImport={async (parsedRows) => {
+              if (!parsedRows || parsedRows.length === 0) return;
+              let count = 0;
+              for (const row of parsedRows) {
+                const produk = row.produk || row["Model Printer"] || row["produk"];
+                const sn = row.sn || row["Serial Number"] || row["sn"];
+                if (!produk || !sn) continue;
+                try {
+                  await addPrinter({
+                    produk,
+                    sn,
+                    outlet: row.outlet || row["Outlet / Unit Kerja"] || "-",
+                    status: row.status || row["Status"] || "Aktif",
+                  });
+                  count++;
+                } catch (err) {
+                  console.error("Error import printer:", err);
+                }
+              }
+              setNotif({ show: true, message: `${count} data printer berhasil diimpor!`, type: "success" });
+              if (loadAllData) loadAllData();
+            }}
+          />
           {userRole === "admin" && (
             <button
               onClick={() => { setEditingId(null); setFormData({}); setIsModalOpen(true); }}

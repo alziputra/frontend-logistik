@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { History, Search, FileText, ArrowLeftRight } from "lucide-react";
+import ExcelActionButtons from "../Common/ExcelActionButtons";
 
 export default function RiwayatTransaksi({
   transactions = [],
@@ -33,14 +34,29 @@ export default function RiwayatTransaksi({
           </div>
         </div>
 
-        <div className="relative w-full sm:w-64">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Cari nomor / nama..."
-            className="w-full pl-9 pr-4 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-slate-100 outline-none focus:border-emerald-500"
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+          <div className="relative w-full sm:w-64">
+            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Cari nomor / nama..."
+              className="w-full pl-9 pr-4 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-slate-100 outline-none focus:border-emerald-500"
+            />
+          </div>
+          <ExcelActionButtons
+            data={filtered}
+            fileName="Riwayat_Transaksi_Logistik"
+            headersMap={{
+              nomorSurat: "Nomor Surat",
+              tanggal: "Tanggal",
+              jenisTransaksi: "Jenis Transaksi",
+              pengirimNama: "Pengirim",
+              penerimaNama: "Penerima",
+              lokasi: "Lokasi",
+            }}
+            showImport={false}
           />
         </div>
       </div>

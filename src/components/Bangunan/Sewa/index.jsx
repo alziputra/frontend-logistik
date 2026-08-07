@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Key, Search, Plus, FileSpreadsheet } from "lucide-react";
 import { exportToExcel as exportExcelUtil } from "../../../utils/excelUtils";
-
+import ExcelActionButtons from "../../Common/ExcelActionButtons";
 import SewaTable from "./SewaTable";
 import SewaModal from "./SewaModal";
 import { addMenuSewa, updateMenuSewa, deleteMenuSewa } from "../../../services/menuSewaService";
@@ -104,12 +104,41 @@ export default function BangunanSewa({
         </div>
 
         <div className="flex items-center gap-3 w-full lg:w-auto justify-end">
-          <button
-            onClick={exportToExcel}
-            className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-sm transition-colors cursor-pointer"
-          >
-            <FileSpreadsheet className="w-4 h-4" /> Export Excel
-          </button>
+          <ExcelActionButtons
+            data={filteredSewas}
+            fileName="Sewa_Bangunan_Pegadaian"
+            headersMap={{
+              nama_outlet: "Nama Outlet",
+              kode_outlet: "Kode Outlet",
+              type_outlet: "Type Outlet",
+              type_bangunan: "Type Bangunan",
+              harga_sewa: "Harga Sewa",
+              alamat: "Alamat",
+            }}
+            onImport={async (parsedRows) => {
+              if (!parsedRows || parsedRows.length === 0) return;
+              let count = 0;
+              for (const row of parsedRows) {
+                const nama_outlet = row.nama_outlet || row["Nama Outlet"] || row["nama_outlet"];
+                if (!nama_outlet) continue;
+                try {
+                  await addMenuSewa({
+                    nama_outlet,
+                    kode_outlet: row.kode_outlet || row["Kode Outlet"] || "-",
+                    type_outlet: row.type_outlet || row["Type Outlet"] || "CP",
+                    type_bangunan: row.type_bangunan || row["Type Bangunan"] || "Ruko",
+                    harga_sewa: Number(row.harga_sewa || row["Harga Sewa"] || 0),
+                    alamat: row.alamat || row["Alamat"] || "-",
+                  });
+                  count++;
+                } catch (err) {
+                  console.error("Error import sewa:", err);
+                }
+              }
+              alert(`${count} data sewa bangunan berhasil diimpor.`);
+              if (loadAllData) loadAllData();
+            }}
+          />
           {userRole === "admin" && (
             <button
               onClick={openAdd}

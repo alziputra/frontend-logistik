@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Users, Search, Plus, Phone, MapPin, Edit, Trash2 } from "lucide-react";
 import { addVendor, updateVendor, deleteVendor } from "../../services/vendorService";
+import ExcelActionButtons from "../Common/ExcelActionButtons";
 
 export default function MasterVendor({ vendors = [], userRole = "admin", loadAllData }) {
   const [search, setSearch] = useState("");
@@ -82,6 +83,33 @@ export default function MasterVendor({ vendors = [], userRole = "admin", loadAll
               className="w-full pl-9 pr-4 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-slate-100 outline-none focus:border-emerald-500"
             />
           </div>
+          <ExcelActionButtons
+            data={filtered}
+            fileName="Master_Vendor_Pegadaian"
+            headersMap={{
+              nama: "Nama Vendor",
+              no_telp: "No Telepon",
+              alamat: "Alamat",
+            }}
+            onImport={async (parsedRows) => {
+              if (!parsedRows || parsedRows.length === 0) return;
+              let successCount = 0;
+              for (const row of parsedRows) {
+                const nama = row.nama || row["Nama Vendor"] || row["nama"];
+                const no_telp = row.no_telp || row["No Telepon"] || row["telp"] || "-";
+                const alamat = row.alamat || row["Alamat"] || "-";
+                if (!nama) continue;
+                try {
+                  await addVendor({ nama, no_telp, alamat });
+                  successCount++;
+                } catch (err) {
+                  console.error("Error import vendor row:", err);
+                }
+              }
+              alert(`${successCount} data vendor berhasil diimpor.`);
+              if (loadAllData) loadAllData();
+            }}
+          />
           {userRole === "admin" && (
             <button
               onClick={handleOpenAdd}

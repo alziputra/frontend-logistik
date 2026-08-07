@@ -5,6 +5,7 @@ import {
 import { addInventory, updateInventory, deleteInventory } from "../../services/inventoryService";
 import BarangFormModal from "./BarangFormModal";
 import { useNotification } from "../../context/NotificationContext";
+import ExcelActionButtons from "../Common/ExcelActionButtons";
 
 export default function MasterBarang({ inventory = [], vendors = [], userRole = "admin", loadAllData }) {
   const { showSuccess, showError, showConfirmDelete } = useNotification();
@@ -159,6 +160,44 @@ export default function MasterBarang({ inventory = [], vendors = [], userRole = 
               className="w-full pl-10 pr-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-slate-100 placeholder:text-slate-500 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/30 transition-all"
             />
           </div>
+          <ExcelActionButtons
+            data={filteredInventory}
+            fileName="Master_Barang_Pegadaian"
+            headersMap={{
+              nama: "Nama Barang",
+              kuantitas: "Kuantitas",
+              satuan: "Satuan",
+              status: "Status",
+              vendor_nama: "Vendor",
+              no_spk: "No SPK",
+              no_pks: "No PKS",
+            }}
+            onImport={async (parsedRows) => {
+              if (!parsedRows || parsedRows.length === 0) return;
+              let successCount = 0;
+              for (const row of parsedRows) {
+                const nama = row.nama || row["Nama Barang"] || row["nama"];
+                if (!nama) continue;
+                try {
+                  await addInventory({
+                    nama,
+                    kuantitas: Number(row.kuantitas || row["Kuantitas"] || row["stok"] || 1),
+                    stok: Number(row.kuantitas || row["Kuantitas"] || row["stok"] || 1),
+                    satuan: row.satuan || row["Satuan"] || "Unit",
+                    vendor_nama: row.vendor_nama || row["Vendor"] || "-",
+                    status: row.status || row["Status"] || "Inventaris",
+                    no_spk: row.no_spk || row["No SPK"] || null,
+                    no_pks: row.no_pks || row["No PKS"] || null,
+                  });
+                  successCount++;
+                } catch (err) {
+                  console.error("Error import row:", err);
+                }
+              }
+              showSuccess("Import Excel Berhasil!", `${successCount} data barang berhasil diimpor.`);
+              if (loadAllData) loadAllData();
+            }}
+          />
           {userRole === "admin" && (
             <button
               onClick={handleOpenAdd}

@@ -1,6 +1,7 @@
 import React, { useState, useRef } from "react";
 import { Map, Search, Plus, FileSpreadsheet, Edit, Trash2, X, Loader2 } from "lucide-react";
 import { exportToExcel as exportExcelUtil } from "../../../utils/excelUtils";
+import ExcelActionButtons from "../../Common/ExcelActionButtons";
 import { addAsetTanah, updateAsetTanah, deleteAsetTanah } from "../../../services/asetTanahService";
 
 export default function BangunanTanah({ userRole = "admin", lands = [], landFilter = "", setLandFilter, loadAllData }) {
@@ -182,12 +183,43 @@ export default function BangunanTanah({ userRole = "admin", lands = [], landFilt
         </div>
 
         <div className="flex items-center gap-3 w-full lg:w-auto justify-end">
-          <button
-            onClick={exportToExcel}
-            className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-sm transition-colors cursor-pointer"
-          >
-            <FileSpreadsheet className="w-4 h-4" /> Export Excel
-          </button>
+          <ExcelActionButtons
+            data={filteredLands}
+            fileName="Daftar_Tanah_Pegadaian"
+            headersMap={{
+              unit_kerja: "Unit Kerja",
+              alamat: "Alamat",
+              peruntukan: "Peruntukan",
+              aset_sap: "Aset SAP",
+              no_shgb: "No SHGB",
+              no_sertifikat: "No Sertifikat",
+              luas_tanah: "Luas Tanah",
+            }}
+            onImport={async (parsedRows) => {
+              if (!parsedRows || parsedRows.length === 0) return;
+              let count = 0;
+              for (const row of parsedRows) {
+                const unit_kerja = row.unit_kerja || row["Unit Kerja"] || row["unit_kerja"];
+                if (!unit_kerja) continue;
+                try {
+                  await addAsetTanah({
+                    unit_kerja,
+                    alamat: row.alamat || row["Alamat"] || "-",
+                    peruntukan: row.peruntukan || row["Peruntukan"] || "-",
+                    aset_sap: row.aset_sap || row["Aset SAP"] || "-",
+                    no_shgb: row.no_shgb || row["No SHGB"] || "-",
+                    no_sertifikat: row.no_sertifikat || row["No Sertifikat"] || "-",
+                    luas_tanah: row.luas_tanah || row["Luas Tanah"] || "0",
+                  });
+                  count++;
+                } catch (err) {
+                  console.error("Error import tanah:", err);
+                }
+              }
+              alert(`${count} data aset tanah berhasil diimpor.`);
+              if (loadAllData) loadAllData();
+            }}
+          />
           {userRole === "admin" && (
             <button
               onClick={openAdd}

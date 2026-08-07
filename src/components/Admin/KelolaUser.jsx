@@ -1,17 +1,31 @@
 import React from "react";
 import { Users, Shield, UserCheck } from "lucide-react";
+import ExcelActionButtons from "../Common/ExcelActionButtons";
 
 export default function KelolaUser({ usersList = [], handleUpdateRole = () => {} }) {
   return (
     <div className="max-w-7xl mx-auto p-6 animate-in fade-in duration-300">
-      <div className="flex items-center gap-3 mb-6">
-        <div className="bg-emerald-950 p-2.5 rounded-2xl border border-emerald-800/40">
-          <Users className="w-6 h-6 text-emerald-400" />
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+        <div className="flex items-center gap-3">
+          <div className="bg-emerald-950 p-2.5 rounded-2xl border border-emerald-800/40">
+            <Users className="w-6 h-6 text-emerald-400" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-slate-100">Kelola Pengguna & Hak Akses</h2>
+            <p className="text-xs text-slate-400">Atur hak akses akun pengguna sistem logistik.</p>
+          </div>
         </div>
-        <div>
-          <h2 className="text-2xl font-bold text-slate-100">Kelola Pengguna & Hak Akses</h2>
-          <p className="text-xs text-slate-400">Atur hak akses akun pengguna sistem logistik.</p>
-        </div>
+
+        <ExcelActionButtons
+          data={usersList}
+          fileName="Daftar_Pengguna_System"
+          headersMap={{
+            name: "Nama Pengguna",
+            email: "Email",
+            role: "Role",
+          }}
+          showImport={false}
+        />
       </div>
 
       <div className="bg-slate-900 rounded-2xl shadow-xl border border-slate-800 overflow-hidden">

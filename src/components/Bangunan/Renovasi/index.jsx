@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Hammer, Search, Plus, FileSpreadsheet, Edit, Trash2, X, Loader2 } from "lucide-react";
 import { exportToExcel as exportExcelUtil } from "../../../utils/excelUtils";
+import ExcelActionButtons from "../../Common/ExcelActionButtons";
 import { addRenovasi, updateRenovasi, deleteRenovasi } from "../../../services/renovasiService";
 
 export default function BangunanRenovasi({
@@ -102,12 +103,39 @@ export default function BangunanRenovasi({
         </div>
 
         <div className="flex items-center gap-3 w-full lg:w-auto justify-end">
-          <button
-            onClick={exportToExcel}
-            className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-sm transition-colors cursor-pointer"
-          >
-            <FileSpreadsheet className="w-4 h-4" /> Export Excel
-          </button>
+          <ExcelActionButtons
+            data={filteredData}
+            fileName="Renovasi_Bangunan_Pegadaian"
+            headersMap={{
+              nama_pekerjaan: "Nama Pekerjaan",
+              nama_outlet: "Nama Outlet",
+              no_spk: "No. SPK",
+              pelaksana_pekerjaan: "Pelaksana Pekerjaan",
+              nilai_pembayaran: "Nilai Pembayaran",
+            }}
+            onImport={async (parsedRows) => {
+              if (!parsedRows || parsedRows.length === 0) return;
+              let count = 0;
+              for (const row of parsedRows) {
+                const nama_pekerjaan = row.nama_pekerjaan || row["Nama Pekerjaan"] || row["nama_pekerjaan"];
+                if (!nama_pekerjaan) continue;
+                try {
+                  await addRenovasi({
+                    nama_pekerjaan,
+                    nama_outlet: row.nama_outlet || row["Nama Outlet"] || "-",
+                    no_spk: row.no_spk || row["No. SPK"] || "-",
+                    pelaksana_pekerjaan: row.pelaksana_pekerjaan || row["Pelaksana Pekerjaan"] || "-",
+                    nilai_pembayaran: Number(row.nilai_pembayaran || row["Nilai Pembayaran"] || 0),
+                  });
+                  count++;
+                } catch (err) {
+                  console.error("Error import renovasi:", err);
+                }
+              }
+              alert(`${count} data renovasi berhasil diimpor.`);
+              if (loadAllData) loadAllData();
+            }}
+          />
           {userRole === "admin" && (
             <button
               onClick={openAdd}
